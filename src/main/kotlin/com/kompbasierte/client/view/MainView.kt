@@ -1,16 +1,14 @@
-package com.example.demo.view
+package com.kompbasierte.client.view
 
-import com.example.demo.app.Styles
+import com.kompbasierte.client.app.Control
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.control.SelectionMode
-import sun.rmi.runtime.Log
 import tornadofx.*
-import java.util.logging.Logger
-import javax.xml.bind.annotation.XmlElementDecl
 
 class MainView : View("Hello Tornado") {
     var index = 0
+    val controller = Control(this)
 
 
     override val root = hbox {

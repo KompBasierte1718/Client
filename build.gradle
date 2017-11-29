@@ -32,13 +32,13 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 }
 
-mainClassName = 'com.example.demo.app.MyApp'
+mainClassName = 'com.kompbasierte.client.app.Launcher'
 
 jar {
     manifest {
         attributes(
                 'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'com.example.demo.app.MyApp'
+                'Main-Class': 'com.kompbasierte.client.app.Launcher'
         )
     }
     from(configurations.compile.collect { entry -> zipTree(entry) }) {
