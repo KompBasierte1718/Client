@@ -8,42 +8,69 @@ import tornadofx.*
 
 class ApplicationsAndCommandsTableView : View() {
 
-    lateinit var master : MainView
-    var control = master.controller
+    lateinit var master: MainView
+    //    var control = master.controller
     var index = 0
-    override val root = hbox {
-        vbox {
-            listview<String> {
+    override val root = borderpane {
+        left = vbox {
+            val appList = ArrayList<String>().observable()
+            appList.add("VLC")
+            appList.add("Spotify")
+            val listView = listview(appList) {
 
-                items.add("VLC")
-                items.add("Spotify")
                 selectionModel.selectionMode = SelectionMode.SINGLE
 
             }
+            flowpane {
+                button("Applikation hinzufügen") {
+
+                }
+                button("Applikation bearbeiten") {
+                    /*if (listView.selectedItem.equals("Spotify")) {
+                    }*/
+                }
+                button("Applikation löschen") {
+                    action {
+                        appList.remove(listView.selectedItem)
+                        listView.refresh()
+                    }
+                }
+            }
         }
 
-        vbox {
-            val commands = HashMap<Int, Command>()
+        center = vbox {
 
-            val table = tableview(commands.values.toList().observable()) {
+            val commands = ArrayList<Command>()
+
+            val table = tableview(commands.observable()) {
                 isEditable = true
                 column("ID", Command::id)
                 column("Name", Command::name).useTextField()
                 column("VACallout", Command::VACallout).useTextField()
                 column("shortcut", Command::shortcut).useTextField()
             }
-            button("Neuer Eintrag") {
-                action {
-                    commands.put(index, Command(index, "Eintrag " + index, "Eintrag " + index, "" + index))
-                    index++
-                    table.items = commands.values.toList().observable()
-                    table.refresh()
+            flowpane {
+                button("Neuer Befehl") {
+                    action {
+                        commands.add(Command(index, "Eintrag " + index, "Eintrag " + index, "" + index))
+                        index++
+                        table.refresh()
+                    }
                 }
-
+                button("Befehl bearbeiten") {}
+                button("Löschen") {
+                    action {
+                        println(commands.remove(table.selectedItem))
+                        table.refresh()
+                    }
+                }
+                button("Neue Befehlskette")
+                button("Befehlskette bearbeiten")
             }
         }
     }
 }
+
 class Command(id: Int, name: String, VACallout: String, shortcut: String) {
 
     val idProperty = SimpleIntegerProperty(id)

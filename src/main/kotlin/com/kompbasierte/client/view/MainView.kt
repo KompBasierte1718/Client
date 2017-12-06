@@ -9,8 +9,8 @@ class MainView : View("Hello Tornado") {
     val applicationsAndCommandsView : ApplicationsAndCommandsTableView by inject()
     val genericWarningView = find(GenericWarningView::class)
 
-    override val root = vbox {
-        menubar {
+    override val root = borderpane {
+       top=  menubar {
 
             menu("Datei") {
                 item("Beispiel")
@@ -26,14 +26,18 @@ class MainView : View("Hello Tornado") {
             }
         }
 
-        add(applicationsAndCommandsView)
         applicationsAndCommandsView.master = this@MainView
+        center = vbox { add(applicationsAndCommandsView) }
 
-        button("delete"){
+
+        bottom = button("Trigger Warning"){
             action {
-                showWarning("Hier könnte ihre Warnung stehen!1!")
+                showWarning("Hier könnte ihre Warnung stehen!")
             }
         }
+    }
+
+    init {
     }
 
 
