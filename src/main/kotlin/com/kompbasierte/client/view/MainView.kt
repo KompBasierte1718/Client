@@ -1,16 +1,19 @@
 package com.kompbasierte.client.view
 
+import com.kompbasierte.client.model.Application
+import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.app.Control
 import tornadofx.*
 
 class MainView : View("Hello Tornado") {
 
     val controller = Control(this)
-    val applicationsAndCommandsView : ApplicationsAndCommandsTableView by inject()
-    val genericWarningView = find(GenericWarningView::class)
+    private val applicationsAndCommandsView: ApplicationsAndCommandsTableView by inject()
+    private val genericWarningView = find(GenericWarningView::class)
+    private val newOrEditCommandView = find(NewOrEditCommandView::class)
 
     override val root = borderpane {
-       top=  menubar {
+        top = menubar {
 
             menu("Datei") {
                 item("Beispiel")
@@ -28,23 +31,50 @@ class MainView : View("Hello Tornado") {
 
         applicationsAndCommandsView.master = this@MainView
         center = vbox { add(applicationsAndCommandsView) }
+        applicationsAndCommandsView.refreshApplicationData()
+        applicationsAndCommandsView.refreshCommandData()
 
-
-        bottom = button("Trigger Warning"){
+        bottom = button("Trigger Warning") {
             action {
                 showWarning("Hier könnte ihre Warnung stehen!")
             }
         }
+
     }
 
     init {
     }
 
+    fun getCommandsForPrgramm(application: Application): ArrayList<Command>? {
+        return controller.getCommandsForApplications(application)
+    }
 
-    fun showWarning(text:String){
+    fun saveCommandForApplication(commandToSave: Command /*application: Application*/){
+        controller.saveCommandForApplication(commandToSave)
+        refreshTableView()
+    }
+
+    fun showWarning(text: String) {
         genericWarningView.setWarningText(text)
-       openInternalWindow(genericWarningView)
+        openInternalWindow(genericWarningView)
+    }
 
+    fun openCommandEdit() {
+        newOrEditCommandView.master = this
+        openInternalWindow(newOrEditCommandView)
+    }
+
+    private fun refreshTableView(){
+        applicationsAndCommandsView.refreshCommandData()
+    }
+
+    fun getApplications(): ArrayList<Application> {
+        return controller.getApplications()
+    }
+
+    fun deleteCommandForApplication(selectedApp: Application, commandToDelete: Command) {
+        controller.deleteCommandForApplication(commandToDelete)
+        refreshTableView()
     }
 
 }

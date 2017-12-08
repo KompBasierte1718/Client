@@ -1,7 +1,6 @@
 package com.kompbasierte.client.view
 
 import tornadofx.*
-import java.awt.Label
 
 
 class GenericWarningView : Fragment("Warnung!") {

@@ -1,33 +1,56 @@
 package com.kompbasierte.client.view
 
-import javafx.beans.property.SimpleIntegerProperty
-import javafx.beans.property.SimpleStringProperty
+import com.kompbasierte.client.model.Application
+import com.kompbasierte.client.model.Command
+import javafx.geometry.Pos
+import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
+import javafx.scene.control.TableView
 import tornadofx.*
 
 
 class ApplicationsAndCommandsTableView : View() {
 
     lateinit var master: MainView
-    //    var control = master.controller
-    var index = 0
-    override val root = borderpane {
-        left = vbox {
-            val appList = ArrayList<String>().observable()
-            appList.add("VLC")
-            appList.add("Spotify")
-            val listView = listview(appList) {
+    private lateinit var listView: ListView<Application>
+    private lateinit var table: TableView<Command>
+    private var commands = ArrayList<Command>()
+    private var appList = ArrayList<Application>()
 
+    override val root = hbox {
+        vbox {
+
+            listView = listview(appList.observable()) {
+                cellFormat {
+                    useMaxWidth = true
+                    graphic = hbox {
+                        useMaxWidth = true
+                        label(it.name)
+                        spacer {
+                            spacing = 10.0
+                        }
+                        checkbox("", it.activeProperty) {
+
+                            alignment = Pos.CENTER_RIGHT
+                        }
+                    }
+
+                }
+                onUserSelect {
+                    refreshCommandData()
+                }
                 selectionModel.selectionMode = SelectionMode.SINGLE
 
             }
-            flowpane {
-                button("Applikation hinzufügen") {
+            hbox {
 
+                button("Applikation hinzufügen") {
+                    action {
+                        master.openCommandEdit()
+                    }
                 }
                 button("Applikation bearbeiten") {
-                    /*if (listView.selectedItem.equals("Spotify")) {
-                    }*/
+
                 }
                 button("Applikation löschen") {
                     action {
@@ -38,50 +61,49 @@ class ApplicationsAndCommandsTableView : View() {
             }
         }
 
-        center = vbox {
+        vbox {
 
-            val commands = ArrayList<Command>()
-
-            val table = tableview(commands.observable()) {
+            table = tableview(commands.observable()) {
                 isEditable = true
-                column("ID", Command::id)
-                column("Name", Command::name).useTextField()
-                column("VACallout", Command::VACallout).useTextField()
-                column("shortcut", Command::shortcut).useTextField()
+                column("active", Command::activeProperty).useCheckbox()
+                column("Name", Command::nameProperty).useTextField()
+                column("vACallout", Command::vACalloutProperty).useTextField()
+                column("shortcut", Command::shortcutProperty).useTextField()
             }
-            flowpane {
+            hbox {
                 button("Neuer Befehl") {
                     action {
-                        commands.add(Command(index, "Eintrag " + index, "Eintrag " + index, "" + index))
-                        index++
-                        table.refresh()
+                        master.openCommandEdit()
                     }
                 }
                 button("Befehl bearbeiten") {}
                 button("Löschen") {
                     action {
-                        println(commands.remove(table.selectedItem))
-                        table.refresh()
+                        master.deleteCommandForApplication(listView.selectedItem!!, table.selectedItem!!)
                     }
                 }
                 button("Neue Befehlskette")
-                button("Befehlskette bearbeiten")
+                button("Befehlskette bearbeiten") {
+                    useMaxSize = true
+                }
             }
         }
     }
+
+    fun refreshApplicationData() {
+        appList = master.getApplications()
+        listView.items = appList.observable()
+        listView.refresh()
+        listView.selectionModel.selectFirst()
+    }
+
+    fun refreshCommandData() {
+        if (!listView.items.isEmpty()) {
+            commands = master.getCommandsForPrgramm(listView.selectedItem!!)!!
+            table.items = commands.observable()
+            table.refresh()
+        }
+    }
+
 }
 
-class Command(id: Int, name: String, VACallout: String, shortcut: String) {
-
-    val idProperty = SimpleIntegerProperty(id)
-    var id by idProperty
-
-    val nameProperty = SimpleStringProperty(name)
-    var name by nameProperty
-
-    val VACalloutProperty = SimpleStringProperty(VACallout)
-    var VACallout by VACalloutProperty
-
-    val shortcutProperty = SimpleStringProperty(shortcut)
-    var shortcut by shortcutProperty
-}
