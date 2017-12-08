@@ -1,5 +1,6 @@
 package com.kompbasierte.client.view
 
+import javafx.geometry.Pos
 import tornadofx.*
 
 
@@ -11,9 +12,13 @@ class GenericWarningView : Fragment("Warnung!") {
             useMaxSize
         }
 
-        button {
-            text = "Ok"
-            action { close() }
+        spacer { spacing = 5.0 }
+
+        buttonbar {
+            button {
+                text = "Ok"
+                action { close() }
+            }
         }
 
     }

@@ -6,6 +6,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.ListView
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView
+import javafx.scene.control.Tooltip
 import tornadofx.*
 
 
@@ -45,12 +46,17 @@ class ApplicationsAndCommandsTableView : View() {
             hbox {
 
                 button("Applikation hinzufügen") {
+                    //TODO Funktionalität einfügen
+                    isDisable = true
+                    tooltip = Tooltip("Später implementiert")
                     action {
-                        master.openCommandEdit()
+                        //                        master.openApplicationEdit()
                     }
                 }
                 button("Applikation bearbeiten") {
-
+                    //TODO Funktionalität einfügen
+                    isDisable = true
+                    tooltip = Tooltip("Später implementiert")
                 }
                 button("Applikation löschen") {
                     action {
@@ -79,12 +85,25 @@ class ApplicationsAndCommandsTableView : View() {
                 button("Befehl bearbeiten") {}
                 button("Löschen") {
                     action {
-                        master.deleteCommandForApplication(listView.selectedItem!!, table.selectedItem!!)
+                        val listItem = listView.selectedItem
+                        val tableItem = table.selectedItem
+                        if (listItem != null && tableItem != null) {
+                            master.deleteCommandForApplication(listItem, tableItem)
+
+                        }else{
+                            master.showWarning("Bitte zuerst ein Programm und einen Befehl auswählen!")
+                        }
                     }
                 }
-                button("Neue Befehlskette")
+                button("Neue Befehlskette") {
+                    //TODO Funktionalität einfügen
+                    isDisable = true
+                    tooltip = Tooltip("Später implementiert")
+                }
                 button("Befehlskette bearbeiten") {
-                    useMaxSize = true
+                    //TODO Funktionalität einfügen
+                    isDisable = true
+                    tooltip = Tooltip("Später implementiert")
                 }
             }
         }
