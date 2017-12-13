@@ -109,9 +109,9 @@ class Control constructor(mainview: MainView) {
             while (!result.isAfterLast) {
                 val active: Boolean = result.getInt("active") == 1
                 println("Active set " + active)
-                commandList.add(Command(active, result.getString("name"),
-                        result.getString("VAshoutout"), result.getString("shortcut"),
-                        result.getInt("id")))
+                commandList.add(Command(result.getInt("id"), result.getString("name"),
+                        result.getString("VAshoutout"), result.getString("shortcut"),active
+                        ))
                 result.next()
             }
             result.close()
@@ -127,8 +127,8 @@ class Control constructor(mainview: MainView) {
     fun getApplications(): ArrayList<Application> {
         val appList = ArrayList<Application>()
         //TODO Databasequery
-        appList.add(Application(true, "VLC", "123pfad"))
-        appList.add(Application(true, "Spotify", "123pfad"))
+        appList.add(Application(1,0,"VLC","123pfad32",null, true))
+        appList.add(Application(2,0,"Spotify","123path32","123path64", false))
         return appList
     }
 
