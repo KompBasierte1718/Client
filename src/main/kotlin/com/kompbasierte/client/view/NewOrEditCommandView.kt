@@ -48,8 +48,8 @@ class NewOrEditCommandView : Fragment("New/Edit Command") {
         buttonbar {
             button("Save") {
                 action {
-                    master.saveCommandForApplication(Command(true, nameText.text, nameText.text,
-                            "" + firstComboBox.selectedItem + "+" + secondComboBox.selectedItem,0
+                    master.saveCommandForApplication(Command(0, nameText.text, nameText.text,
+                            "" + firstComboBox.selectedItem + "+" + secondComboBox.selectedItem,true
                             /*TODO implement later + "+" + thirdComboBox.selectedItem*/))
                     close()
                 }
