@@ -205,7 +205,7 @@ class Control constructor(mainview: MainView) {
         closeDatabase()
     }
 
-    fun getCommandsForApplications(programm: Application): ArrayList<Command>? {
+    fun getCommandsForApplications(programm: Application): ArrayList<Command> {
         val commandList = ArrayList<Command>()
         val stmt = db!!.createStatement()
         val sql = "SELECT * FROM Befehl JOIN Programm_Befehl ON  Programm_Befehl.Befehl_ID  = Befehl.ID JOIN Programm" +
