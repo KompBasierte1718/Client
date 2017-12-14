@@ -73,7 +73,7 @@ class ApplicationsAndCommandsTableView : View() {
                 isEditable = true
                 column("active", Command::activeProperty).useCheckbox()
                 column("Name", Command::nameProperty).useTextField()
-                column("vACallout", Command::vACalloutProperty).useTextField()
+                column("VACallout", Command::vACalloutProperty).useTextField()
                 column("shortcut", Command::shortcutProperty).useTextField()
             }
             hbox {
