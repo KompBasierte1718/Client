@@ -15,8 +15,6 @@ class Control constructor(mainview: MainView) {
     private val mainView = mainview
 
     init {
-        println(mainView.heading)
-
         if (!isDatabase()) {
             println("Database not complete, recreating")
             createDatabase()
@@ -99,8 +97,6 @@ class Control constructor(mainview: MainView) {
             execute(sql)
         }
     }
-
-
 
     private  fun insertData() {
         val sqlList = ArrayList<String>()
@@ -192,7 +188,6 @@ class Control constructor(mainview: MainView) {
         println("Registrieren")
     }
 
-
     private fun closeDatabase() {
         println("closing Database")
         if (db != null) {
@@ -203,6 +198,31 @@ class Control constructor(mainview: MainView) {
     fun onClose() {
         println("Closing APP")
         closeDatabase()
+    }
+
+    fun getApplications(): ArrayList<Application> {
+        val appList = ArrayList<Application>()
+        val stmt = db!!.createStatement()
+        val sql = "SELECT * FROM Programm;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+
+
+            while (result.isBeforeFirst)
+                result.next()
+            while (!result.isAfterLast) {
+                val active: Boolean = result.getInt("Aktiv") == 1
+                appList.add(Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
+                        result.getString("Name"),result.getString("Pfad_32"),result.getString("Pfad_64"), active))
+                result.next()
+            }
+            result.close()
+            return appList
+        } catch (e: SQLException) {
+            return appList
+        } finally {
+            stmt.close()
+        }
     }
 
     fun getCommandsForApplications(programm: Application): ArrayList<Command> {
@@ -231,41 +251,15 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    fun getApplications(): ArrayList<Application> {
-        val appList = ArrayList<Application>()
-        val stmt = db!!.createStatement()
-        val sql = "SELECT * FROM Programm;"
-        try {
-            val result = stmt!!.executeQuery(sql)
-
-
-            while (result.isBeforeFirst)
-                result.next()
-            while (!result.isAfterLast) {
-                val active: Boolean = result.getInt("Aktiv") == 1
-                println("Active set " + active)
-                appList.add(Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
-                        result.getString("Name"),result.getString("Pfad_32"),result.getString("Pfad_64"), active))
-                result.next()
-            }
-            result.close()
-            return appList
-        } catch (e: SQLException) {
-            return appList
-        } finally {
-            stmt.close()
-        }
-    }
-
     //TODO add application reference
-    fun saveCommandForApplication(commandToSave: Command) {
+    fun saveCommandForApplication(commandToSave: Command, application: Application) {
         val active = if (commandToSave.active)
             1
         else
             0
         val sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
                 "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
-        println(sql)
+//        println(sql)
         val stmt = db!!.createStatement()
         try {
             stmt.executeUpdate(sql)
@@ -277,7 +271,7 @@ class Control constructor(mainview: MainView) {
     }
 
     //TODO add app reference
-    fun deleteCommandForApplication(commandToDelete: Command) {
+    fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
 
         val sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
         println(sql)

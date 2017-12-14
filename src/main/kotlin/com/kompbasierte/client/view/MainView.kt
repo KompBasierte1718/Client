@@ -59,7 +59,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun saveCommandForApplication(commandToSave: Command) {
-        controller.saveCommandForApplication(commandToSave /*, applicationsAndCommandsView.getSelectedApplication()*/)
+        controller.saveCommandForApplication(commandToSave , applicationsAndCommandsView.getSelectedApplication())
         refreshTableView()
     }
 
@@ -82,7 +82,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun deleteCommandForApplication(selectedApp: Application, commandToDelete: Command) {
-        controller.deleteCommandForApplication(commandToDelete)
+        controller.deleteCommandForApplication(commandToDelete, selectedApp)
         refreshTableView()
     }
 

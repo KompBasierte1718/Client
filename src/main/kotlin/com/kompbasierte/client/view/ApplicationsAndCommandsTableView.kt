@@ -49,7 +49,7 @@ class ApplicationsAndCommandsTableView : View() {
                     isDisable = true
                     tooltip = Tooltip("Später implementiert")
                     action {
-                        //                        master.openApplicationEdit()
+                        // master.openApplicationEdit()
                     }
                 }
                 button("Applikation bearbeiten") {
@@ -122,6 +122,10 @@ class ApplicationsAndCommandsTableView : View() {
         table.items = commands.observable()
         table.refresh()
 //        }
+    }
+
+    fun getSelectedApplication(): Application {
+        return listView.selectionModel.selectedItem
     }
 
 }
