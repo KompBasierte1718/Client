@@ -13,10 +13,9 @@ class NewOrEditCommandView : Fragment("New/Edit Command") {
     override val root = vbox {
         hbox {
             label {
-                text = "Name: " +
-                        ""
+                text = "Name: "
             }
-            nameText = textfield()
+            nameText = textfield{}
         }
         spacing = 10.0
         tabpane {

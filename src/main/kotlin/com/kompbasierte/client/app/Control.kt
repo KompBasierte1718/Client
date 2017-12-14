@@ -35,8 +35,8 @@ class Control constructor(mainview: MainView) {
                 return false
             }
             result.close()
-        } catch (e: SQLException) {
-            mainView.showWarning(e.toString())
+        } catch (e: SQLException) {/*
+            mainView.showWarning(e.toString())*/
             return false
         } finally {
             stmt.close()
@@ -96,13 +96,13 @@ class Control constructor(mainview: MainView) {
         closeDatabase()
     }
 
-    fun getCommandsForApplications(programm: Application): ArrayList<Command>? {
+    fun getCommandsForApplications(programm: Application): ArrayList<Command> {
         //TODO insert correct query
         val stmt = db!!.createStatement()
         val sql = "SELECT * FROM Commands"
+        val commandList = ArrayList<Command>()
         try {
             val result = stmt!!.executeQuery(sql)
-            val commandList = ArrayList<Command>()
 
             while (result.isBeforeFirst)
                 result.next()
@@ -118,7 +118,7 @@ class Control constructor(mainview: MainView) {
             return commandList
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
-            return null
+            return commandList
         } finally {
             stmt.close()
         }

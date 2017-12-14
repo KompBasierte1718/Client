@@ -37,9 +37,8 @@ class ApplicationsAndCommandsTableView : View() {
                     }
 
                 }
-                onUserSelect {
-                    refreshCommandData()
-                }
+                selectionModel.selectedIndexProperty().addListener { v -> refreshCommandData() }
+
                 selectionModel.selectionMode = SelectionMode.SINGLE
 
             }
@@ -90,7 +89,7 @@ class ApplicationsAndCommandsTableView : View() {
                         if (listItem != null && tableItem != null) {
                             master.deleteCommandForApplication(listItem, tableItem)
 
-                        }else{
+                        } else {
                             master.showWarning("Bitte zuerst ein Programm und einen Befehl auswählen!")
                         }
                     }
@@ -117,11 +116,12 @@ class ApplicationsAndCommandsTableView : View() {
     }
 
     fun refreshCommandData() {
-        if (!listView.items.isEmpty()) {
-            commands = master.getCommandsForPrgramm(listView.selectedItem!!)!!
-            table.items = commands.observable()
-            table.refresh()
-        }
+        //kann bei momentaner Implementierung nicht leer sein, da die Funktion auf Itemselektion ausgeführt wird
+//        if (!listView.items.isEmpty()) {
+        commands = master.getCommandsForApplication(listView.selectedItem!!)
+        table.items = commands.observable()
+        table.refresh()
+//        }
     }
 
 }

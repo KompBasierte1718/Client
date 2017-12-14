@@ -3,22 +3,32 @@ package com.kompbasierte.client.view
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.app.Control
+import javafx.application.Platform
+import javafx.event.ActionEvent
+import javafx.event.EventHandler
 import tornadofx.*
+import java.awt.Paint
 
 class MainView : View("Hello Tornado") {
 
-    val controller = Control(this)
     private val applicationsAndCommandsView: ApplicationsAndCommandsTableView by inject()
     private val genericWarningView = find(GenericWarningView::class)
     private val newOrEditCommandView = find(NewOrEditCommandView::class)
+    val controller = Control(this)
+
 
     override val root = borderpane {
         top = menubar {
 
             menu("Datei") {
-                item("Beispiel")
-                item("Beispiel 2")
+                item("Speichern") { isDisable = true }
+                item("Schließen").onAction = EventHandler<ActionEvent> {
+                    //TODO stop() not working
+                    println("Close")
+                    Platform.exit()
+                }
             }
+
             menu("Einstellungen") {
                 item("Beispiel")
                 item("Beispiel 2")
@@ -34,7 +44,8 @@ class MainView : View("Hello Tornado") {
         applicationsAndCommandsView.refreshApplicationData()
         applicationsAndCommandsView.refreshCommandData()
 
-        bottom = button("Trigger Warning") {
+        bottom = button("Trigger Warning")
+        {
             action {
                 showWarning("Hier könnte ihre Warnung stehen!")
             }
@@ -42,15 +53,13 @@ class MainView : View("Hello Tornado") {
 
     }
 
-    init {
-    }
 
-    fun getCommandsForPrgramm(application: Application): ArrayList<Command>? {
+    fun getCommandsForApplication(application: Application): ArrayList<Command> {
         return controller.getCommandsForApplications(application)
     }
 
-    fun saveCommandForApplication(commandToSave: Command /*application: Application*/){
-        controller.saveCommandForApplication(commandToSave)
+    fun saveCommandForApplication(commandToSave: Command) {
+        controller.saveCommandForApplication(commandToSave /*, applicationsAndCommandsView.getSelectedApplication()*/)
         refreshTableView()
     }
 
@@ -64,7 +73,7 @@ class MainView : View("Hello Tornado") {
         openInternalWindow(newOrEditCommandView)
     }
 
-    private fun refreshTableView(){
+    private fun refreshTableView() {
         applicationsAndCommandsView.refreshCommandData()
     }
 
@@ -75,6 +84,14 @@ class MainView : View("Hello Tornado") {
     fun deleteCommandForApplication(selectedApp: Application, commandToDelete: Command) {
         controller.deleteCommandForApplication(commandToDelete)
         refreshTableView()
+    }
+
+    fun onClose() {
+        super.close()
+        applicationsAndCommandsView.close()
+        genericWarningView.close()
+        newOrEditCommandView.close()
+        controller.onClose()
     }
 
 }
