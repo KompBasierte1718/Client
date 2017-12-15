@@ -1,6 +1,7 @@
 package com.kompbasierte.client.app
 
 import com.kompbasierte.client.model.Application
+import com.kompbasierte.client.model.Category
 import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.view.MainView
 import java.sql.*
@@ -251,7 +252,6 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    //TODO add application reference
     fun saveCommandForApplication(commandToSave: Command, application: Application) {
         val active = if (commandToSave.active)
             1
@@ -270,7 +270,6 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    //TODO add app reference
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
 
         val sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
@@ -283,6 +282,21 @@ class Control constructor(mainview: MainView) {
         } finally {
             stmt.close()
         }
+    }
+
+    fun saveApplication(application: Application) {
+        //TODO not implemented
+        //Speichere Programm in die Datenbank
+    }
+
+    fun getCategories(): ArrayList<Category> {
+        val categoryList = ArrayList<Category>()
+        //TODO Datenbankabfrage um alle Kategorien zu bekommen
+        return categoryList
+    }
+
+    fun deleteApplication(application: Application) {
+        //TODO Lösche APP aus DB
     }
 }
 

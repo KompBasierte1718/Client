@@ -37,7 +37,7 @@ class ApplicationsAndCommandsTableView : View() {
                     }
 
                 }
-                selectionModel.selectedIndexProperty().addListener { v -> refreshCommandData() }
+                selectionModel.selectedIndexProperty().addListener { v->refreshCommandData() }
 
                 selectionModel.selectionMode = SelectionMode.SINGLE
 
@@ -46,10 +46,9 @@ class ApplicationsAndCommandsTableView : View() {
 
                 button("Applikation hinzufügen") {
                     //TODO Funktionalität einfügen
-                    isDisable = true
                     tooltip = Tooltip("Später implementiert")
                     action {
-                        // master.openApplicationEdit()
+                        master.openApplicationEdit()
                     }
                 }
                 button("Applikation bearbeiten") {
@@ -59,8 +58,7 @@ class ApplicationsAndCommandsTableView : View() {
                 }
                 button("Applikation löschen") {
                     action {
-                        appList.remove(listView.selectedItem)
-                        listView.refresh()
+                        master.deleteApplication(listView.selectionModel.selectedItem)
                     }
                 }
             }

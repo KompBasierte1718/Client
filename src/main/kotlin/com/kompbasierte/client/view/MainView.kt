@@ -3,7 +3,9 @@ package com.kompbasierte.client.view
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.app.Control
+import com.kompbasierte.client.model.Category
 import javafx.application.Platform
+import javafx.collections.ObservableList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import tornadofx.*
@@ -14,6 +16,7 @@ class MainView : View("Hello Tornado") {
     private val applicationsAndCommandsView: ApplicationsAndCommandsTableView by inject()
     private val genericWarningView = find(GenericWarningView::class)
     private val newOrEditCommandView = find(NewOrEditCommandView::class)
+    private val newOrEditApplicationView = find(NewOrEditApplicationView::class)
     val controller = Control(this)
 
 
@@ -74,6 +77,7 @@ class MainView : View("Hello Tornado") {
     }
 
     private fun refreshTableView() {
+        applicationsAndCommandsView.refreshApplicationData()
         applicationsAndCommandsView.refreshCommandData()
     }
 
@@ -92,6 +96,25 @@ class MainView : View("Hello Tornado") {
         genericWarningView.close()
         newOrEditCommandView.close()
         controller.onClose()
+    }
+
+    fun openApplicationEdit() {
+        newOrEditApplicationView.master = this
+        openInternalWindow(newOrEditApplicationView)
+    }
+
+    fun saveApplication(application: Application){
+        controller.saveApplication(application)
+        refreshTableView()
+    }
+
+    fun getCategories(): ObservableList<Category> {
+        return controller.getCategories().observable()
+    }
+
+    fun deleteApplication(selectedItem: Application) {
+        controller.deleteApplication(selectedItem)
+        refreshTableView()
     }
 
 }
