@@ -16,7 +16,7 @@ class MainView : View("Hello Tornado") {
     private val applicationsAndCommandsView: ApplicationsAndCommandsTableView by inject()
     private val genericWarningView = find(GenericWarningView::class)
     private val newOrEditCommandView = find(NewOrEditCommandView::class)
-    private val newOrEditApplicationView = find(NewOrEditApplicationView::class)
+    //private val newOrEditApplicationView = find(NewOrEditApplicationView::class)
     val controller = Control(this)
 
 
@@ -99,8 +99,8 @@ class MainView : View("Hello Tornado") {
     }
 
     fun openApplicationEdit() {
-        newOrEditApplicationView.master = this
-        openInternalWindow(newOrEditApplicationView)
+        //newOrEditApplicationView.master = this
+        //openInternalWindow(newOrEditApplicationView)
     }
 
     fun saveApplication(application: Application){

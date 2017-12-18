@@ -159,16 +159,6 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    private fun execute(sql: String) {
-        val stmt = db!!.createStatement()
-        try {
-            stmt.execute(sql)
-        } catch (e: SQLException) {
-        } finally {
-            stmt.close()
-        }
-    }
-
     private fun connectToService() {
         TODO("not implemented")
     }
@@ -253,34 +243,83 @@ class Control constructor(mainview: MainView) {
     }
 
     fun saveCommandForApplication(commandToSave: Command, application: Application) {
-        val active = if (commandToSave.active)
-            1
-        else
-            0
-        val sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
-                "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
-//        println(sql)
+        var id = 0
+        var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
         val stmt = db!!.createStatement()
         try {
-            stmt.executeUpdate(sql)
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            id = result.getInt("ID")
+            result.close()
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
         } finally {
             stmt.close()
         }
+        if (id == 0) {
+            val active = if (commandToSave.active) 1 else 0
+            sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
+                    "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
+            println(sql)
+            executeUpdate(sql)
+            sql = "SELECT ID FROM Befehl WHERE Name = '${commandToSave.name}';"
+            val stmt = db!!.createStatement()
+            try {
+                val result = stmt!!.executeQuery(sql)
+                while (result.isBeforeFirst) {
+                    result.next()
+                }
+                id = result.getInt("ID")
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+        }
+        sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (${application.id}, $id);"
+        println(sql)
+        executeUpdate(sql)
     }
 
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
-
-        val sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
+        var sql = "DELETE FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id} AND Programm_ID = ${application.id};"
         println(sql)
+        executeUpdate(sql)
+        var n = 0
+        sql = "SELECT COUNT(*) FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id};"
         val stmt = db!!.createStatement()
         try {
-            stmt.executeUpdate(sql)
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            n += result.getInt("COUNT(*)")
+            result.close()
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
         } finally {
             stmt.close()
+        }
+        sql = "SELECT COUNT(*) FROM Kategorie_Befehl WHERE Befehl_ID = ${commandToDelete.id};"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            n += result.getInt("COUNT(*)")
+            result.close()
+        } catch (e: SQLException) {
+            //mainView.showWarning(e.toString())
+        } finally {
+            stmt.close()
+        }
+        if (n == 0) {
+            sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
+            println(sql)
+            executeUpdate(sql)
         }
     }
 
@@ -297,6 +336,27 @@ class Control constructor(mainview: MainView) {
 
     fun deleteApplication(application: Application) {
         //TODO Lösche APP aus DB
+    }
+
+    private fun execute(sql: String) {
+        val stmt = db!!.createStatement()
+        try {
+            stmt.execute(sql)
+        } catch (e: SQLException) {
+        } finally {
+            stmt.close()
+        }
+    }
+
+    private fun executeUpdate(sql: String) {
+        val stmt = db!!.createStatement()
+        try {
+            stmt.executeUpdate(sql)
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+        } finally {
+            stmt.close()
+        }
     }
 }
 
