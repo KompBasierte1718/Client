@@ -10,9 +10,8 @@ import javafx.scene.control.Tooltip
 import tornadofx.*
 
 
-class ApplicationsAndCommandsTableView : View() {
+class ApplicationsAndCommandsTableView(val master:MainView) : View() {
 
-    lateinit var master: MainView
     private lateinit var listView: ListView<Application>
     private lateinit var table: TableView<Command>
     private var commands = ArrayList<Command>()
@@ -37,7 +36,7 @@ class ApplicationsAndCommandsTableView : View() {
                     }
 
                 }
-                selectionModel.selectedIndexProperty().addListener { v->refreshCommandData() }
+                selectionModel.selectedIndexProperty().addListener { _ ->refreshCommandData() }
 
                 selectionModel.selectionMode = SelectionMode.SINGLE
 

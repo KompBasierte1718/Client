@@ -1,4 +1,4 @@
-package com.kompbasierte.client.view
+﻿package com.kompbasierte.client.view
 
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Command
@@ -13,11 +13,11 @@ import java.awt.Paint
 
 class MainView : View("Hello Tornado") {
 
-    private val applicationsAndCommandsView: ApplicationsAndCommandsTableView by inject()
-    private val genericWarningView = find(GenericWarningView::class)
-    private val newOrEditCommandView = find(NewOrEditCommandView::class)
-    //private val newOrEditApplicationView = find(NewOrEditApplicationView::class)
     val controller = Control(this)
+    private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
+    private val genericWarningView = GenericWarningView()
+    private val newOrEditCommandView = NewOrEditCommandView(this)
+    private val newOrEditApplicationView = NewOrEditApplicationView(this)
 
 
     override val root = borderpane {
@@ -42,7 +42,6 @@ class MainView : View("Hello Tornado") {
             }
         }
 
-        applicationsAndCommandsView.master = this@MainView
         center = vbox { add(applicationsAndCommandsView) }
         applicationsAndCommandsView.refreshApplicationData()
         applicationsAndCommandsView.refreshCommandData()
@@ -72,7 +71,6 @@ class MainView : View("Hello Tornado") {
     }
 
     fun openCommandEdit() {
-        newOrEditCommandView.master = this
         openInternalWindow(newOrEditCommandView)
     }
 
@@ -99,8 +97,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun openApplicationEdit() {
-        //newOrEditApplicationView.master = this
-        //openInternalWindow(newOrEditApplicationView)
+        openInternalWindow(newOrEditApplicationView)
     }
 
     fun saveApplication(application: Application){
@@ -108,8 +105,8 @@ class MainView : View("Hello Tornado") {
         refreshTableView()
     }
 
-    fun getCategories(): ObservableList<Category> {
-        return controller.getCategories().observable()
+    fun getCategories(): ArrayList<Category> {
+        return controller.getCategories()
     }
 
     fun deleteApplication(selectedItem: Application) {
