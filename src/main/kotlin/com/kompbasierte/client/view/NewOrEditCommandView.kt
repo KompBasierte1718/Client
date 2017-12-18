@@ -4,8 +4,7 @@ import com.kompbasierte.client.model.Command
 import javafx.scene.control.*
 import tornadofx.*
 
-class NewOrEditCommandView : Fragment("New/Edit Command") {
-    lateinit var master: MainView
+class NewOrEditCommandView (val master:MainView): Fragment("New/Edit Command") {
     lateinit var nameText: TextField
     lateinit var firstComboBox: ComboBox<String>
     lateinit var secondComboBox: ComboBox<String>

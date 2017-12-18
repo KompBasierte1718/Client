@@ -1,11 +1,9 @@
 package com.kompbasierte.client.view
 
 import com.kompbasierte.client.model.Category
-import javafx.scene.control.ComboBox
 import tornadofx.*
 
-class NewOrEditApplicationView : Fragment("My View") {
-    lateinit var master : MainView
+class NewOrEditApplicationView(val master: MainView) : Fragment("New/Edit Applikation") {
     override val root = vbox {
 
         form {
@@ -17,7 +15,10 @@ class NewOrEditApplicationView : Fragment("My View") {
                     textfield()
                 }
                 field("Kategorie"){
-                    ComboBox<Category>(master.getCategories())
+                    combobox<Category>{
+                        items = master.getCategories().observable()
+                        selectionModel.selectFirst()
+                    }
                 }
             }
         }

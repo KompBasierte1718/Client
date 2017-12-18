@@ -291,8 +291,10 @@ class Control constructor(mainview: MainView) {
 
     fun getCategories(): ArrayList<Category> {
         val categoryList = ArrayList<Category>()
-        //TODO Datenbankabfrage um alle Kategorien zu bekommen
+        categoryList.add(Category(1,"Dummy"))
         return categoryList
+        //TODO Datenbankabfrage um alle Kategorien zu bekommen
+
     }
 
     fun deleteApplication(application: Application) {
