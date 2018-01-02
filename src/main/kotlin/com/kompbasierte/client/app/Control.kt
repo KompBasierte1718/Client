@@ -24,6 +24,26 @@ class Control constructor(mainview: MainView) {
 //        connectToService()
     }
 
+    private fun openDatabase(): Connection? {
+        val url = "jdbc:sqlite:client.db"
+
+        return try {
+            DriverManager.getConnection(url)
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return null
+        }
+    }
+
+    private fun connectToService() {
+        TODO("not implemented")
+    }
+
+    private fun registerToService() {
+        TODO("not implemented")
+        println("Registrieren")
+    }
+
     private fun isDatabase(): Boolean {
         if(checkTable("Befehl") && checkTable("Kategorie") && checkTable("Kategorie_Befehl")
                 && checkTable("Programm") && checkTable("Programm_Befehl")) {
@@ -159,46 +179,12 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    private fun connectToService() {
-        TODO("not implemented")
-    }
-
-    private fun openDatabase(): Connection? {
-        val url = "jdbc:sqlite:client.db"
-
-        return try {
-            DriverManager.getConnection(url)
-        } catch (e: SQLException) {
-            mainView.showWarning(e.toString())
-            return null
-        }
-    }
-
-    private fun registerToService() {
-        TODO("not implemented")
-        println("Registrieren")
-    }
-
-    private fun closeDatabase() {
-        println("closing Database")
-        if (db != null) {
-            db.close()
-        }
-    }
-
-    fun onClose() {
-        println("Closing APP")
-        closeDatabase()
-    }
-
     fun getApplications(): ArrayList<Application> {
         val appList = ArrayList<Application>()
         val stmt = db!!.createStatement()
         val sql = "SELECT * FROM Programm;"
         try {
             val result = stmt!!.executeQuery(sql)
-
-
             while (result.isBeforeFirst)
                 result.next()
             while (!result.isAfterLast) {
@@ -211,6 +197,27 @@ class Control constructor(mainview: MainView) {
             return appList
         } catch (e: SQLException) {
             return appList
+        } finally {
+            stmt.close()
+        }
+    }
+
+    fun getCategories(): ArrayList<Category> {
+        val categoryList = ArrayList<Category>()
+        val stmt = db!!.createStatement()
+        val sql = "SELECT * FROM Kategorie;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst)
+                result.next()
+            while (!result.isAfterLast) {
+                categoryList.add(Category(result.getInt("ID"),result.getString("Name")))
+                result.next()
+            }
+            result.close()
+            return categoryList
+        } catch (e: SQLException) {
+            return categoryList
         } finally {
             stmt.close()
         }
@@ -284,6 +291,11 @@ class Control constructor(mainview: MainView) {
         executeUpdate(sql)
     }
 
+    fun saveApplication(application: Application) {
+        //TODO not implemented
+        //Speichere Programm in die Datenbank
+    }
+
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
         var sql = "DELETE FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id} AND Programm_ID = ${application.id};"
         println(sql)
@@ -323,19 +335,6 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    fun saveApplication(application: Application) {
-        //TODO not implemented
-        //Speichere Programm in die Datenbank
-    }
-
-    fun getCategories(): ArrayList<Category> {
-        val categoryList = ArrayList<Category>()
-        categoryList.add(Category(1,"Dummy"))
-        return categoryList
-        //TODO Datenbankabfrage um alle Kategorien zu bekommen
-
-    }
-
     fun deleteApplication(application: Application) {
         //TODO Lösche APP aus DB
     }
@@ -359,6 +358,18 @@ class Control constructor(mainview: MainView) {
         } finally {
             stmt.close()
         }
+    }
+
+    private fun closeDatabase() {
+        println("closing Database")
+        if (db != null) {
+            db.close()
+        }
+    }
+
+    fun onClose() {
+        println("Closing APP")
+        closeDatabase()
     }
 }
 
