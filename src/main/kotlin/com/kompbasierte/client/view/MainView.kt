@@ -1,4 +1,4 @@
-package com.kompbasierte.client.view
+﻿package com.kompbasierte.client.view
 
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Command
@@ -17,7 +17,6 @@ class MainView : View("Hello Tornado") {
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
     private val genericWarningView = GenericWarningView()
     private val newOrEditCommandView = NewOrEditCommandView(this)
-    private val newOrEditApplicationView = NewOrEditApplicationView(this)
 
 
     override val root = borderpane {
@@ -97,6 +96,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun openApplicationEdit() {
+        val newOrEditApplicationView = NewOrEditApplicationView(this)
         openInternalWindow(newOrEditApplicationView)
     }
 

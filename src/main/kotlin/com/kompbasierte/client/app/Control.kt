@@ -24,6 +24,26 @@ class Control constructor(mainview: MainView) {
 //        connectToService()
     }
 
+    private fun openDatabase(): Connection? {
+        val url = "jdbc:sqlite:client.db"
+
+        return try {
+            DriverManager.getConnection(url)
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return null
+        }
+    }
+
+    private fun connectToService() {
+        TODO("not implemented")
+    }
+
+    private fun registerToService() {
+        TODO("not implemented")
+        println("Registrieren")
+    }
+
     private fun isDatabase(): Boolean {
         if(checkTable("Befehl") && checkTable("Kategorie") && checkTable("Kategorie_Befehl")
                 && checkTable("Programm") && checkTable("Programm_Befehl")) {
@@ -64,7 +84,7 @@ class Control constructor(mainview: MainView) {
 
         sqlList.add( "CREATE TABLE IF NOT EXISTS 'Kategorie' (\n" +
                     " 'ID'   INTEGER NOT NULL,\n" +
-                    " 'Name' TEXT NOT NULL,\n" +
+                    " 'Name' TEXT NOT NULL UNIQUE,\n" +
                     " PRIMARY KEY('ID')\n" +
                     ");")
 
@@ -159,56 +179,12 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    private fun execute(sql: String) {
-        val stmt = db!!.createStatement()
-        try {
-            stmt.execute(sql)
-        } catch (e: SQLException) {
-        } finally {
-            stmt.close()
-        }
-    }
-
-    private fun connectToService() {
-        TODO("not implemented")
-    }
-
-    private fun openDatabase(): Connection? {
-        val url = "jdbc:sqlite:client.db"
-
-        return try {
-            DriverManager.getConnection(url)
-        } catch (e: SQLException) {
-            mainView.showWarning(e.toString())
-            return null
-        }
-    }
-
-    private fun registerToService() {
-        TODO("not implemented")
-        println("Registrieren")
-    }
-
-    private fun closeDatabase() {
-        println("closing Database")
-        if (db != null) {
-            db.close()
-        }
-    }
-
-    fun onClose() {
-        println("Closing APP")
-        closeDatabase()
-    }
-
     fun getApplications(): ArrayList<Application> {
         val appList = ArrayList<Application>()
         val stmt = db!!.createStatement()
         val sql = "SELECT * FROM Programm;"
         try {
             val result = stmt!!.executeQuery(sql)
-
-
             while (result.isBeforeFirst)
                 result.next()
             while (!result.isAfterLast) {
@@ -223,6 +199,27 @@ class Control constructor(mainview: MainView) {
             return appList
         } finally {
             stmt.close()
+        }
+    }
+
+    fun getCategories(): ArrayList<Category> {
+        val categoryList = ArrayList<Category>()
+        val stmt = db!!.createStatement()
+        val sql = "SELECT * FROM Kategorie;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst)
+                result.next()
+            while (!result.isAfterLast) {
+                categoryList.add(Category(result.getInt("ID"),result.getString("Name")))
+                result.next()
+            }
+            result.close()
+
+        } catch (e: SQLException) {
+        } finally {
+            stmt.close()
+            return categoryList
         }
     }
 
@@ -253,27 +250,162 @@ class Control constructor(mainview: MainView) {
     }
 
     fun saveCommandForApplication(commandToSave: Command, application: Application) {
-        val active = if (commandToSave.active)
-            1
-        else
-            0
-        val sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
-                "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
-//        println(sql)
+        var id = 0
+        var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
         val stmt = db!!.createStatement()
         try {
-            stmt.executeUpdate(sql)
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            id = result.getInt("ID")
+            result.close()
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
         } finally {
             stmt.close()
+        }
+        if (id == 0) {
+            val active = if (commandToSave.active) {1} else {0}
+            sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
+                    "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
+            println(sql)
+            executeUpdate(sql)
+            sql = "SELECT ID FROM Befehl WHERE Name = '${commandToSave.name}';"
+            try {
+                val result = stmt!!.executeQuery(sql)
+                while (result.isBeforeFirst) {
+                    result.next()
+                }
+                id = result.getInt("ID")
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+        }
+        sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (${application.id}, $id);"
+        println(sql)
+        executeUpdate(sql)
+    }
+
+    fun saveApplication(application: Application) {
+        var id = 0
+        var sql = "SELECT COUNT(*), ID FROM Programm WHERE Name = '${application.name}';"
+        val stmt = db!!.createStatement()
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            id = result.getInt("ID")
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+        } finally {
+            stmt.close()
+        }
+        if (id == 0) {
+            val active = if (application.active) {1} else {0}
+            sql = "INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) " +
+                    "VALUES ('${application.category_ID}', '${application.name}', '${application.path_32}', '${application.path_64}', '$active');"
+            println(sql)
+            executeUpdate(sql)
+            sql = "SELECT ID FROM Programm WHERE Name = '${application.name}';"
+            try {
+                val result = stmt!!.executeQuery(sql)
+                while (result.isBeforeFirst) {
+                    result.next()
+                }
+                id = result.getInt("ID")
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+            sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${application.category_ID};"
+            try {
+                val result = stmt!!.executeQuery(sql)
+
+                while (result.isBeforeFirst)
+                    result.next()
+                while (!result.isAfterLast) {
+                    sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES ('$id', '${result.getInt("ID")}')"
+                    println(sql)
+                    executeUpdate(sql)
+                    result.next()
+                }
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
         }
     }
 
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
-
-        val sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
+        var sql = "DELETE FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id} AND Programm_ID = ${application.id};"
         println(sql)
+        executeUpdate(sql)
+        var n = 0
+        sql = "SELECT COUNT(*) FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id};"
+        val stmt = db!!.createStatement()
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            n += result.getInt("COUNT(*)")
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+        } finally {
+            stmt.close()
+        }
+        sql = "SELECT COUNT(*) FROM Kategorie_Befehl WHERE Befehl_ID = ${commandToDelete.id};"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            n += result.getInt("COUNT(*)")
+            result.close()
+        } catch (e: SQLException) {
+            //mainView.showWarning(e.toString())
+        } finally {
+            stmt.close()
+        }
+        if (n == 0) {
+            sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
+            println(sql)
+            executeUpdate(sql)
+        }
+    }
+
+    fun deleteApplication(application: Application) {
+        var sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${application.id};"
+        println(sql)
+        executeUpdate(sql)
+        sql = "DELETE FROM Programm WHERE ID = '${application.id}';"
+        println(sql)
+        executeUpdate(sql)
+    }
+
+    private fun execute(sql: String) {
+        val stmt = db!!.createStatement()
+        try {
+            stmt.execute(sql)
+        } catch (e: SQLException) {
+        } finally {
+            stmt.close()
+        }
+    }
+
+    private fun executeUpdate(sql: String) {
         val stmt = db!!.createStatement()
         try {
             stmt.executeUpdate(sql)
@@ -284,21 +416,16 @@ class Control constructor(mainview: MainView) {
         }
     }
 
-    fun saveApplication(application: Application) {
-        //TODO not implemented
-        //Speichere Programm in die Datenbank
+    private fun closeDatabase() {
+        println("closing Database")
+        if (db != null) {
+            db.close()
+        }
     }
 
-    fun getCategories(): ArrayList<Category> {
-        val categoryList = ArrayList<Category>()
-        categoryList.add(Category(1,"Dummy"))
-        return categoryList
-        //TODO Datenbankabfrage um alle Kategorien zu bekommen
-
-    }
-
-    fun deleteApplication(application: Application) {
-        //TODO Lösche APP aus DB
+    fun onClose() {
+        println("Closing APP")
+        closeDatabase()
     }
 }
 

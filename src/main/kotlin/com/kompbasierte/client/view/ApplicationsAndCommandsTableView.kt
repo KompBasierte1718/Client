@@ -44,8 +44,6 @@ class ApplicationsAndCommandsTableView(val master:MainView) : View() {
             hbox {
 
                 button("Applikation hinzufügen") {
-                    //TODO Funktionalität einfügen
-                    tooltip = Tooltip("Später implementiert")
                     action {
                         master.openApplicationEdit()
                     }
