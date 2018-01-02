@@ -215,11 +215,11 @@ class Control constructor(mainview: MainView) {
                 result.next()
             }
             result.close()
-            return categoryList
+
         } catch (e: SQLException) {
-            return categoryList
         } finally {
             stmt.close()
+            return categoryList
         }
     }
 
@@ -387,7 +387,12 @@ class Control constructor(mainview: MainView) {
     }
 
     fun deleteApplication(application: Application) {
-        //TODO Lösche APP aus DB
+        var sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${application.id};"
+        println(sql)
+        executeUpdate(sql)
+        sql = "DELETE FROM Programm WHERE ID = '${application.id}';"
+        println(sql)
+        executeUpdate(sql)
     }
 
     private fun execute(sql: String) {
