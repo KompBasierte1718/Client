@@ -84,7 +84,7 @@ class Control constructor(mainview: MainView) {
 
         sqlList.add( "CREATE TABLE IF NOT EXISTS 'Kategorie' (\n" +
                     " 'ID'   INTEGER NOT NULL,\n" +
-                    " 'Name' TEXT NOT NULL,\n" +
+                    " 'Name' TEXT NOT NULL UNIQUE,\n" +
                     " PRIMARY KEY('ID')\n" +
                     ");")
 
