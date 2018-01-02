@@ -266,13 +266,12 @@ class Control constructor(mainview: MainView) {
             stmt.close()
         }
         if (id == 0) {
-            val active = if (commandToSave.active) 1 else 0
+            val active = if (commandToSave.active) {1} else {0}
             sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
                     "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
             println(sql)
             executeUpdate(sql)
             sql = "SELECT ID FROM Befehl WHERE Name = '${commandToSave.name}';"
-            val stmt = db!!.createStatement()
             try {
                 val result = stmt!!.executeQuery(sql)
                 while (result.isBeforeFirst) {
@@ -292,8 +291,60 @@ class Control constructor(mainview: MainView) {
     }
 
     fun saveApplication(application: Application) {
-        //TODO not implemented
-        //Speichere Programm in die Datenbank
+        var id = 0
+        var sql = "SELECT COUNT(*), ID FROM Programm WHERE Name = '${application.name}';"
+        val stmt = db!!.createStatement()
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            id = result.getInt("ID")
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+        } finally {
+            stmt.close()
+        }
+        if (id == 0) {
+            val active = if (application.active) {1} else {0}
+            sql = "INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) " +
+                    "VALUES ('${application.category_ID}', '${application.name}', '${application.path_32}', '${application.path_64}', '$active');"
+            println(sql)
+            executeUpdate(sql)
+            sql = "SELECT ID FROM Programm WHERE Name = '${application.name}';"
+            try {
+                val result = stmt!!.executeQuery(sql)
+                while (result.isBeforeFirst) {
+                    result.next()
+                }
+                id = result.getInt("ID")
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+            sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${application.category_ID};"
+            try {
+                val result = stmt!!.executeQuery(sql)
+
+                while (result.isBeforeFirst)
+                    result.next()
+                while (!result.isAfterLast) {
+                    sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES ('$id', '${result.getInt("ID")}')"
+                    println(sql)
+                    executeUpdate(sql)
+                    result.next()
+                }
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+        }
     }
 
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
