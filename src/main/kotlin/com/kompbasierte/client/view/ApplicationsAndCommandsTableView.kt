@@ -119,9 +119,10 @@ class ApplicationsAndCommandsTableView(val master: MainView) : View() {
     fun refreshCommandData() {
         if (!listView.items.isEmpty()) {
             LOG.info("Existing Apps found")
-            if(listView.selectionModel.selectedIndex==-1)
+            if (listView.selectionModel.selectedIndex < 0) {
                 LOG.info("Appindex is negative / No active Selection")
                 listView.selectionModel.selectFirst()
+            }
             val app = getSelectedApplication()
             commands = master.getCommandsForApplication(app)
             table.items = commands.observable()
