@@ -7,54 +7,65 @@ import com.kompbasierte.client.view.MainView
 import java.sql.*
 import java.sql.SQLException
 import java.sql.DriverManager
+import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
 
-class Control constructor(mainview: MainView) {
+class Control constructor(private val mainView: MainView) {
 
-    private val db = openDatabase()
-    private val mainView = mainview
+    companion object {
+        private val LOG = Logger.getLogger(Control::class.java.name)
+    }
+
+    private lateinit var db: Connection
 
     init {
+        try {
+            db = openDatabase()
+        } catch (e: SQLException) {
+            mainView.showWarning("Fehler beim Verbinden mit der Datenbank. Bitte neustarten. Sollte der Fehler " +
+                    "bestehen bleiben wenden Sie sich bitte an das Team auf https://github.com/KompBasierte1718/Client")
+        }
         if (!isDatabase()) {
-            println("Database not complete, recreating")
+            LOG.info("Database not complete, recreating")
             createDatabase()
             insertData()
         }
-//        connectToService()
+        connectToService()
     }
 
-    private fun openDatabase(): Connection? {
+    private fun openDatabase(): Connection {
         val url = "jdbc:sqlite:client.db"
 
         return try {
+            LOG.info("Connecting to DB")
             DriverManager.getConnection(url)
         } catch (e: SQLException) {
-            mainView.showWarning(e.toString())
-            return null
+            LOG.warning("Connection to DB failed!")
+            throw e
         }
     }
 
     private fun connectToService() {
-        TODO("not implemented")
+//        TODO("not implemented")
     }
 
     private fun registerToService() {
         TODO("not implemented")
-        println("Registrieren")
+        LOG.info("Registrieren")
     }
 
     private fun isDatabase(): Boolean {
-        if(checkTable("Befehl") && checkTable("Kategorie") && checkTable("Kategorie_Befehl")
+        if (checkTable("Befehl") && checkTable("Kategorie") && checkTable("Kategorie_Befehl")
                 && checkTable("Programm") && checkTable("Programm_Befehl")) {
             return true
         }
         return false
     }
 
-    private fun checkTable(table: String) : Boolean {
+    private fun checkTable(table: String): Boolean {
         val sql = ("SELECT name FROM sqlite_master WHERE type='table' AND name='$table'")
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         try {
             val result = stmt.executeQuery(sql)
             result.next()
@@ -74,52 +85,52 @@ class Control constructor(mainview: MainView) {
     private fun createDatabase() {
         val sqlList = ArrayList<String>()
         sqlList.add("CREATE TABLE IF NOT EXISTS 'Befehl' (\n" +
-                    " 'ID'        INTEGER NOT NULL,\n" +
-                    " 'Name'      TEXT NOT NULL,\n" +
-                    " 'VACallout' TEXT NOT NULL,\n" +
-                    " 'shortcut'  TEXT NOT NULL,\n" +
-                    " 'Aktiv'     INTEGER NOT NULL,\n" +
-                    " PRIMARY KEY('ID')\n" +
-                    ");")
+                " 'ID'        INTEGER NOT NULL,\n" +
+                " 'Name'      TEXT NOT NULL,\n" +
+                " 'VACallout' TEXT NOT NULL,\n" +
+                " 'shortcut'  TEXT NOT NULL,\n" +
+                " 'Aktiv'     INTEGER NOT NULL,\n" +
+                " PRIMARY KEY('ID')\n" +
+                ");")
 
-        sqlList.add( "CREATE TABLE IF NOT EXISTS 'Kategorie' (\n" +
-                    " 'ID'   INTEGER NOT NULL,\n" +
-                    " 'Name' TEXT NOT NULL UNIQUE,\n" +
-                    " PRIMARY KEY('ID')\n" +
-                    ");")
+        sqlList.add("CREATE TABLE IF NOT EXISTS 'Kategorie' (\n" +
+                " 'ID'   INTEGER NOT NULL,\n" +
+                " 'Name' TEXT NOT NULL UNIQUE,\n" +
+                " PRIMARY KEY('ID')\n" +
+                ");")
 
         sqlList.add("CREATE TABLE IF NOT EXISTS 'Kategorie_Befehl' (\n" +
-                    " 'Kategorie_ID' INTEGER NOT NULL,\n" +
-                    " 'Befehl_ID'    INTEGER NOT NULL,\n" +
-                    " PRIMARY KEY('Kategorie_ID','Befehl_ID'),\n" +
-                    " FOREIGN KEY('Kategorie_ID') REFERENCES 'Kategorie'('ID'),\n" +
-                    " FOREIGN KEY('Befehl_ID') REFERENCES 'Befehl'('ID')\n" +
-                    ");")
+                " 'Kategorie_ID' INTEGER NOT NULL,\n" +
+                " 'Befehl_ID'    INTEGER NOT NULL,\n" +
+                " PRIMARY KEY('Kategorie_ID','Befehl_ID'),\n" +
+                " FOREIGN KEY('Kategorie_ID') REFERENCES 'Kategorie'('ID'),\n" +
+                " FOREIGN KEY('Befehl_ID') REFERENCES 'Befehl'('ID')\n" +
+                ");")
 
         sqlList.add("CREATE TABLE IF NOT EXISTS 'Programm' (\n" +
-                    " 'ID'           INTEGER NOT NULL,\n" +
-                    " 'Kategorie_ID' INTEGER NOT NULL,\n" +
-                    " 'Name'         TEXT NOT NULL,\n" +
-                    " 'Pfad_32'      TEXT NOT NULL,\n" +
-                    " 'Pfad_64'      TEXT,\n" +
-                    " 'Aktiv'        INTEGER NOT NULL,\n" +
-                    " PRIMARY KEY('ID'),\n" +
-                    " FOREIGN KEY('Kategorie_ID') REFERENCES 'Kategorie'('ID')\n" +
-                    ");")
+                " 'ID'           INTEGER NOT NULL,\n" +
+                " 'Kategorie_ID' INTEGER NOT NULL,\n" +
+                " 'Name'         TEXT NOT NULL,\n" +
+                " 'Pfad_32'      TEXT NOT NULL,\n" +
+                " 'Pfad_64'      TEXT,\n" +
+                " 'Aktiv'        INTEGER NOT NULL,\n" +
+                " PRIMARY KEY('ID'),\n" +
+                " FOREIGN KEY('Kategorie_ID') REFERENCES 'Kategorie'('ID')\n" +
+                ");")
 
         sqlList.add("CREATE TABLE IF NOT EXISTS 'Programm_Befehl' (\n" +
-                    " 'Programm_ID' INTEGER NOT NULL,\n" +
-                    " 'Befehl_ID'   INTEGER NOT NULL,\n" +
-                    " PRIMARY KEY('Programm_ID','Befehl_ID'),\n" +
-                    " FOREIGN KEY('Befehl_ID') REFERENCES 'Befehl'('ID'),\n" +
-                    " FOREIGN KEY('Programm_ID') REFERENCES 'Programm'('ID')\n" +
-                    ");")
+                " 'Programm_ID' INTEGER NOT NULL,\n" +
+                " 'Befehl_ID'   INTEGER NOT NULL,\n" +
+                " PRIMARY KEY('Programm_ID','Befehl_ID'),\n" +
+                " FOREIGN KEY('Befehl_ID') REFERENCES 'Befehl'('ID'),\n" +
+                " FOREIGN KEY('Programm_ID') REFERENCES 'Programm'('ID')\n" +
+                ");")
         for (sql: String in sqlList) {
             execute(sql)
         }
     }
 
-    private  fun insertData() {
+    private fun insertData() {
         val sqlList = ArrayList<String>()
         sqlList.add("INSERT INTO Kategorie (Name) VALUES ('Sonstige');")
         sqlList.add("INSERT INTO Kategorie (Name) VALUES ('Mediaplayer');")
@@ -173,7 +184,7 @@ class Control constructor(mainview: MainView) {
         sqlList.add("INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (8, 1);")
         sqlList.add("INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (8, 2);")
         sqlList.add("INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (8, 3);")
-        sqlList.add("INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (8, 4);" )
+        sqlList.add("INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (8, 4);")
         for (sql: String in sqlList) {
             execute(sql)
         }
@@ -181,7 +192,7 @@ class Control constructor(mainview: MainView) {
 
     fun getApplications(): ArrayList<Application> {
         val appList = ArrayList<Application>()
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         val sql = "SELECT * FROM Programm;"
         try {
             val result = stmt!!.executeQuery(sql)
@@ -190,7 +201,7 @@ class Control constructor(mainview: MainView) {
             while (!result.isAfterLast) {
                 val active: Boolean = result.getInt("Aktiv") == 1
                 appList.add(Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
-                        result.getString("Name"),result.getString("Pfad_32"),result.getString("Pfad_64"), active))
+                        result.getString("Name"), result.getString("Pfad_32"), result.getString("Pfad_64"), active))
                 result.next()
             }
             result.close()
@@ -204,14 +215,14 @@ class Control constructor(mainview: MainView) {
 
     fun getCategories(): ArrayList<Category> {
         val categoryList = ArrayList<Category>()
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         val sql = "SELECT * FROM Kategorie;"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
                 result.next()
             while (!result.isAfterLast) {
-                categoryList.add(Category(result.getInt("ID"),result.getString("Name")))
+                categoryList.add(Category(result.getInt("ID"), result.getString("Name")))
                 result.next()
             }
             result.close()
@@ -225,7 +236,7 @@ class Control constructor(mainview: MainView) {
 
     fun getCommandsForApplications(programm: Application): ArrayList<Command> {
         val commandList = ArrayList<Command>()
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         val sql = "SELECT * FROM Befehl JOIN Programm_Befehl ON  Programm_Befehl.Befehl_ID  = Befehl.ID JOIN Programm" +
                 " ON Programm_Befehl.Programm_ID = Programm.ID WHERE Programm.ID = ${programm.id};"
         try {
@@ -236,7 +247,7 @@ class Control constructor(mainview: MainView) {
             while (!result.isAfterLast) {
                 val active: Boolean = result.getInt("Aktiv") == 1
                 commandList.add(Command(result.getInt("ID"), result.getString("Name"),
-                        result.getString("VACallout"), result.getString("shortcut"),active))
+                        result.getString("VACallout"), result.getString("shortcut"), active))
                 result.next()
             }
             result.close()
@@ -252,7 +263,7 @@ class Control constructor(mainview: MainView) {
     fun saveCommandForApplication(commandToSave: Command, application: Application) {
         var id = 0
         var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst) {
@@ -266,7 +277,11 @@ class Control constructor(mainview: MainView) {
             stmt.close()
         }
         if (id == 0) {
-            val active = if (commandToSave.active) {1} else {0}
+            val active = if (commandToSave.active) {
+                1
+            } else {
+                0
+            }
             sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
                     "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
             println(sql)
@@ -293,7 +308,7 @@ class Control constructor(mainview: MainView) {
     fun saveApplication(application: Application) {
         var id = 0
         var sql = "SELECT COUNT(*), ID FROM Programm WHERE Name = '${application.name}';"
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst) {
@@ -307,7 +322,11 @@ class Control constructor(mainview: MainView) {
             stmt.close()
         }
         if (id == 0) {
-            val active = if (application.active) {1} else {0}
+            val active = if (application.active) {
+                1
+            } else {
+                0
+            }
             sql = "INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) " +
                     "VALUES ('${application.category_ID}', '${application.name}', '${application.path_32}', '${application.path_64}', '$active');"
             println(sql)
@@ -353,7 +372,7 @@ class Control constructor(mainview: MainView) {
         executeUpdate(sql)
         var n = 0
         sql = "SELECT COUNT(*) FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id};"
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst) {
@@ -396,7 +415,7 @@ class Control constructor(mainview: MainView) {
     }
 
     private fun execute(sql: String) {
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         try {
             stmt.execute(sql)
         } catch (e: SQLException) {
@@ -406,7 +425,7 @@ class Control constructor(mainview: MainView) {
     }
 
     private fun executeUpdate(sql: String) {
-        val stmt = db!!.createStatement()
+        val stmt = db.createStatement()
         try {
             stmt.executeUpdate(sql)
         } catch (e: SQLException) {
@@ -417,14 +436,14 @@ class Control constructor(mainview: MainView) {
     }
 
     private fun closeDatabase() {
-        println("closing Database")
-        if (db != null) {
+        LOG.info("closing Database")
+        if (!db.isClosed) {
             db.close()
         }
     }
 
     fun onClose() {
-        println("Closing APP")
+        LOG.info("Closing APP")
         closeDatabase()
     }
 }
