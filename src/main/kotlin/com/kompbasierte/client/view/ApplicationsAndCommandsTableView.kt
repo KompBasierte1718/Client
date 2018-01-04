@@ -8,9 +8,13 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView
 import javafx.scene.control.Tooltip
 import tornadofx.*
+import java.util.logging.Logger
 
 
-class ApplicationsAndCommandsTableView(val master:MainView) : View() {
+class ApplicationsAndCommandsTableView(val master: MainView) : View() {
+    companion object {
+        private val LOG = Logger.getLogger(ApplicationsAndCommandsTableView::class.java.name)
+    }
 
     private lateinit var listView: ListView<Application>
     private lateinit var table: TableView<Command>
@@ -36,7 +40,7 @@ class ApplicationsAndCommandsTableView(val master:MainView) : View() {
                     }
 
                 }
-                selectionModel.selectedIndexProperty().addListener { _ ->refreshCommandData() }
+                selectionModel.selectedIndexProperty().addListener { _ -> refreshCommandData() }
 
                 selectionModel.selectionMode = SelectionMode.SINGLE
 
@@ -107,21 +111,28 @@ class ApplicationsAndCommandsTableView(val master:MainView) : View() {
         appList = master.getApplications()
         listView.items = appList.observable()
         listView.refresh()
+        LOG.info("Selecting first App")
         listView.selectionModel.selectFirst()
+
     }
 
     fun refreshCommandData() {
-        //kann bei momentaner Implementierung nicht leer sein, da die Funktion auf Itemselektion ausgeführt wird
-//        if (!listView.items.isEmpty()) {
-        commands = master.getCommandsForApplication(listView.selectedItem!!)
-        table.items = commands.observable()
-        table.refresh()
-//        }
+        if (!listView.items.isEmpty()) {
+            LOG.info("Existing Apps found")
+            if (listView.selectionModel.selectedIndex < 0) {
+                LOG.info("Appindex is negative / No active Selection")
+                listView.selectionModel.selectFirst()
+            }
+            val app = getSelectedApplication()
+            commands = master.getCommandsForApplication(app)
+            table.items = commands.observable()
+            table.refresh()
+        }
     }
 
     fun getSelectedApplication(): Application {
+        LOG.info("Getting Applications")
         return listView.selectionModel.selectedItem
     }
-
 }
 

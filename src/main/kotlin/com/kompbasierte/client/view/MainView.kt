@@ -5,13 +5,16 @@ import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.app.Control
 import com.kompbasierte.client.model.Category
 import javafx.application.Platform
-import javafx.collections.ObservableList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import tornadofx.*
-import java.awt.Paint
+import java.util.logging.Logger
 
 class MainView : View("Hello Tornado") {
+
+    companion object {
+        private val LOG = Logger.getLogger(MainView::class.java.name)
+    }
 
     val controller = Control(this)
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
@@ -25,8 +28,7 @@ class MainView : View("Hello Tornado") {
             menu("Datei") {
                 item("Speichern") { isDisable = true }
                 item("Schließen").onAction = EventHandler<ActionEvent> {
-                    //TODO stop() not working
-                    println("Close")
+                    LOG.info("Close Client")
                     Platform.exit()
                 }
             }
@@ -45,12 +47,14 @@ class MainView : View("Hello Tornado") {
         applicationsAndCommandsView.refreshApplicationData()
         applicationsAndCommandsView.refreshCommandData()
 
-        bottom = button("Trigger Warning")
-        {
-            action {
-                showWarning("Hier könnte ihre Warnung stehen!")
-            }
-        }
+//        Vorerst nicht mehr benötigt
+
+//        bottom = button("Trigger Warning")
+//        {
+//            action {
+//                showWarning("Hier könnte ihre Warnung stehen!")
+//            }
+//        }
 
     }
 
