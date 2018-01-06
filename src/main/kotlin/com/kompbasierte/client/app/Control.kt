@@ -12,6 +12,7 @@ import kotlin.collections.ArrayList
 
 
 class Control constructor(private val mainView: MainView) {
+    private val jsonLink = JSONLink(this)
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
@@ -20,6 +21,7 @@ class Control constructor(private val mainView: MainView) {
     private lateinit var db: Connection
 
     init {
+
         try {
             db = openDatabase()
         } catch (e: SQLException) {
@@ -445,6 +447,10 @@ class Control constructor(private val mainView: MainView) {
     fun onClose() {
         LOG.info("Closing APP")
         closeDatabase()
+    }
+
+    fun registerDevice() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
 

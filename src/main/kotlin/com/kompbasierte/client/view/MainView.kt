@@ -26,6 +26,7 @@ class MainView : View("Hello Tornado") {
         top = menubar {
 
             menu("Datei") {
+                item("Gerät registrieren"){controller.registerDevice()}
                 item("Speichern") { isDisable = true }
                 item("Schließen").onAction = EventHandler<ActionEvent> {
                     LOG.info("Close Client")
