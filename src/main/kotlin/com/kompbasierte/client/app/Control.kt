@@ -449,7 +449,8 @@ class Control constructor(private val mainView: MainView) {
         closeDatabase()
     }
 
-    fun registerDevice() {
+    fun registerDevice(arg :String) {
+        LOG.info("Schlüssel ist: "+arg)
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
