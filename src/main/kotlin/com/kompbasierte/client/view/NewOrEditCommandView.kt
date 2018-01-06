@@ -1,6 +1,7 @@
 package com.kompbasierte.client.view
 
 import com.kompbasierte.client.model.Command
+import javafx.beans.binding.BooleanBinding
 import javafx.event.EventHandler
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
@@ -52,13 +53,23 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
                                     if (listen) {
                                         text = "Stop"
                                         onKeyPressedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
-                                            println(e.toString())
                                             if (e != null) {
+                                                println(e.code.toString())
                                                 strgDown = e.isShortcutDown
                                                 altDown = e.isAltDown
                                                 shiftDown = e.isShiftDown
                                                 buttonName = e.code
-                                                strgLabel.requestFocus()
+                                                refreshPane()
+                                            }
+                                        }))
+                                        onKeyReleasedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
+                                            if (e != null) {
+                                                println(e.code.toString())
+                                                strgDown = e.isShortcutDown
+                                                altDown = e.isAltDown
+                                                shiftDown = e.isShiftDown
+                                                buttonName = e.code
+                                                refreshPane()
                                             }
                                         }))
                                     } else {
@@ -67,8 +78,8 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
                                     }
                                 }
                             }
-                            strgLabel = label("STRG + ") {
-                                visibleWhen { strgDown.toProperty() }
+                            strgLabel = label("STRG + "){
+                                isVisible=false
                             }
                             val altLabel = textfield("ALT + ") {
                                 visibleWhen ( altDown.toProperty() )
@@ -102,6 +113,11 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
                 }
             }
         }
+    }
+
+    private fun refreshPane() {
+        strgLabel.isVisible=strgDown
+        onRefresh()
     }
 
 }
