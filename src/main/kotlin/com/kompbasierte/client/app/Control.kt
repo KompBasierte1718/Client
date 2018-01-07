@@ -4,12 +4,13 @@ import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Category
 import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.view.MainView
+import org.json.JSONObject
 import java.sql.*
 import java.sql.SQLException
 import java.sql.DriverManager
 import java.util.logging.Logger
+import javax.json.Json
 import kotlin.collections.ArrayList
-
 
 class Control constructor(private val mainView: MainView) {
     private val jsonLink = JSONLink(this)
@@ -451,6 +452,9 @@ class Control constructor(private val mainView: MainView) {
 
     fun registerDevice(arg :String) {
         LOG.info("Schlüssel ist: "+arg)
+        val json = JSONObject()
+        json.put("Passwort", arg)
+        jsonLink.sendJSON(json,41337)
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

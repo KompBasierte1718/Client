@@ -23,9 +23,6 @@
         </compilerArguments>
       </configuration>
     </facet>
-    <facet type="TornadoFX" name="TornadoFX">
-      <configuration />
-    </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/../../out/production/classes" />
@@ -39,6 +36,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Gradle: no.tornado:tornadofx:1.7.12" level="project" />
     <orderEntry type="library" name="Gradle: org.xerial:sqlite-jdbc:3.8.11.2" level="project" />
+    <orderEntry type="library" name="Gradle: org.json:json:20171018" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jre8:1.2.10" level="project" />
     <orderEntry type="library" name="Gradle: org.glassfish:javax.json:1.0.4" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-reflect:1.1.51" level="project" />

@@ -28,6 +28,7 @@ repositories {
 dependencies {
     compile 'no.tornado:tornadofx:1.7.12'
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile group: 'org.json', name: 'json', version: '20171018'
     testCompile 'junit:junit:4.12'
     testCompile "org.jetbrains.kotlin:kotlin-test"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"

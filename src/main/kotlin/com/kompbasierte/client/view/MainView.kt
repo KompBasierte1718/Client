@@ -121,6 +121,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun openKeyDialog() {
+        keyDialog.keyText.clear()
         openInternalWindow(keyDialog)
     }
 
