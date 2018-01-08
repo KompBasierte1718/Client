@@ -1,10 +1,12 @@
 package com.kompbasierte.client.view
 
 import com.kompbasierte.client.model.Command
-import javafx.beans.binding.BooleanBinding
 import javafx.event.EventHandler
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyCombination.*
 import javafx.scene.input.KeyEvent
 import tornadofx.*
 
@@ -13,10 +15,18 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
     lateinit var firstComboBox: ComboBox<String>
     lateinit var secondComboBox: ComboBox<String>
     lateinit var strgLabel: Label
+    lateinit var altLabel: Label
+    lateinit var shiftLabel: Label
+    lateinit var keyLabel: Label
+
     var strgDown = false
     var altDown = false
     var shiftDown = false
-    var buttonName = KeyCode.A
+    var keyName = KeyCode.A
+    var pressedKeyWithMod = KeyCodeCombination(keyName, KeyCombination.ModifierValue.UP,
+            KeyCombination.ModifierValue.UP, KeyCombination.ModifierValue.UP,
+            KeyCombination.ModifierValue.UP, KeyCombination.ModifierValue.UP)
+
     //    lateinit var thirdComboBox: ComboBox<String>
     override val root = vbox {
         hbox {
@@ -55,39 +65,68 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
                                         onKeyPressedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
                                             if (e != null) {
                                                 println(e.code.toString())
+
                                                 strgDown = e.isShortcutDown
+                                                val controlModifier: KeyCombination.ModifierValue
+                                                if (strgDown) {
+                                                    controlModifier = ModifierValue.DOWN
+                                                } else {
+                                                    controlModifier = ModifierValue.UP
+                                                }
+
                                                 altDown = e.isAltDown
+                                                val altModifier: KeyCombination.ModifierValue
+                                                if (strgDown) {
+                                                    altModifier = ModifierValue.DOWN
+                                                } else {
+                                                    altModifier = ModifierValue.UP
+                                                }
+
                                                 shiftDown = e.isShiftDown
-                                                buttonName = e.code
+                                                val shiftModifier: KeyCombination.ModifierValue
+                                                if (strgDown) {
+                                                    shiftModifier = ModifierValue.DOWN
+                                                } else {
+                                                    shiftModifier = ModifierValue.UP
+                                                }
+
+                                                keyName = e.code
+                                                if (!e.code.isModifierKey) {
+                                                    //SHIFT, CTRL, ALT, META, SHORTCUT
+                                                    pressedKeyWithMod = KeyCodeCombination(e.code, shiftModifier,
+                                                            controlModifier, altModifier, controlModifier,
+                                                            controlModifier)
+                                                }
+                                                e.consume()
                                                 refreshPane()
                                             }
                                         }))
-                                        onKeyReleasedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
+                                        /*onKeyReleasedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
                                             if (e != null) {
                                                 println(e.code.toString())
                                                 strgDown = e.isShortcutDown
                                                 altDown = e.isAltDown
                                                 shiftDown = e.isShiftDown
-                                                buttonName = e.code
+                                                keyName = e.code
                                                 refreshPane()
                                             }
-                                        }))
+                                        }))*/
                                     } else {
                                         text = "Lauschen"
                                         onKeyPressedProperty().set(null)
                                     }
                                 }
                             }
-                            strgLabel = label("STRG + "){
-                                isVisible=false
+                            strgLabel = label("STRG + ") {
+                                isVisible = false
                             }
-                            val altLabel = textfield("ALT + ") {
-                                visibleWhen ( altDown.toProperty() )
+                            altLabel = label("ALT + ") {
+                                isVisible = false
                             }
-                            val shiftLabel = label("Shift + ") {
-                                visibleWhen ( shiftDown.toProperty() )
+                            shiftLabel = label("Shift + ") {
+                                isVisible = false
                             }
-                            val buttonLabel = label(buttonName.getName())
+                            keyLabel = label(keyName.getName())
                         }
                     }
                 }
@@ -102,8 +141,8 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
             button("Save") {
                 action {
                     master.saveCommandForApplication(Command(0, nameText.text, nameText.text,
-                            "" + firstComboBox.selectedItem + "+" + secondComboBox.selectedItem, true
-                            /*TODO implement later + "+" + thirdComboBox.selectedItem*/))
+                            ""+pressedKeyWithMod, true))
+                    //TODO Change CommandKlasse für KeyValues
                     close()
                 }
             }
@@ -116,7 +155,12 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
     }
 
     private fun refreshPane() {
-        strgLabel.isVisible=strgDown
+        strgLabel.isVisible = strgDown
+        altLabel.isVisible = altDown
+        shiftLabel.isVisible = shiftDown
+        if (!keyName.isModifierKey) {
+            keyLabel.text = keyName.getName()
+        }
         onRefresh()
     }
 

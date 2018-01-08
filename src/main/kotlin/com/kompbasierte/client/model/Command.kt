@@ -12,6 +12,7 @@ class Command(val id: Int, name: String, vACallout: String, shortcut: String, ac
     val vACalloutProperty = SimpleStringProperty(vACallout)
     var vACallout by vACalloutProperty
 
+    //TODO Change to KeyCodeCombination
     val shortcutProperty = SimpleStringProperty(shortcut)
     var shortcut by shortcutProperty
 
