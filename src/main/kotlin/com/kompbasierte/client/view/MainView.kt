@@ -16,13 +16,17 @@ class MainView : View("Hello Tornado") {
         private val LOG = Logger.getLogger(MainView::class.java.name)
     }
 
-    val controller = Control(this)
+    //Create a Control
+    private val controller = Control(this)
+
+    //instanciate all Views
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
     private val genericWarningView = GenericWarningView()
     private val newOrEditCommandView = NewOrEditCommandView(this)
 
-
+    //Define Layout
     override val root = borderpane {
+        //Menu on top
         top = menubar {
 
             menu("Datei") {
@@ -43,12 +47,11 @@ class MainView : View("Hello Tornado") {
             }
         }
 
+        //Open AppAndCommandView in Center and refresh Data
         center = vbox { add(applicationsAndCommandsView) }
-        applicationsAndCommandsView.refreshApplicationData()
-        applicationsAndCommandsView.refreshCommandData()
+        refreshTableView()
 
 //        Vorerst nicht mehr benötigt
-
 //        bottom = button("Trigger Warning")
 //        {
 //            action {
@@ -58,30 +61,53 @@ class MainView : View("Hello Tornado") {
 
     }
 
-
+    /**
+     *
+     */
     fun getCommandsForApplication(application: Application): ArrayList<Command> {
         return controller.getCommandsForApplications(application)
     }
 
+    /**
+     *
+     */
     fun saveCommandForApplication(commandToSave: Command) {
         controller.saveCommandForApplication(commandToSave , applicationsAndCommandsView.getSelectedApplication())
         refreshTableView()
     }
 
+    /**
+     * Opens a Warning-Dialog
+     *
+     * @param text The text to show in the Warning
+     */
     fun showWarning(text: String) {
+        LOG.info("Show Warning: "+text)
         genericWarningView.setWarningText(text)
-        openInternalWindow(genericWarningView)
+        genericWarningView.openModal()
     }
 
+    /**
+     * Opens a Command-View
+     */
     fun openCommandEdit() {
         openInternalWindow(newOrEditCommandView)
     }
 
+    /**
+     * Updates the Table-Data of the AppAndCommandView
+     */
     private fun refreshTableView() {
         applicationsAndCommandsView.refreshApplicationData()
         applicationsAndCommandsView.refreshCommandData()
     }
 
+    /**
+     * Gets List of all known Applications from Database
+     *
+     * @return ArrayList of Applications
+     * @see Application
+     */
     fun getApplications(): ArrayList<Application> {
         return controller.getApplications()
     }

@@ -48,10 +48,12 @@ class Control constructor(private val mainView: MainView) {
 
     private fun connectToService() {
 //        TODO("not implemented")
+        //etablish connection to webserver here
     }
 
     private fun registerToService() {
         TODO("not implemented")
+        //register Client here
         LOG.info("Registrieren")
     }
 
@@ -190,6 +192,12 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    /**
+     * Gets all known applications from the Database
+     *
+     * @return ArrayList of known Applications
+     * @see Application
+     */
     fun getApplications(): ArrayList<Application> {
         val appList = ArrayList<Application>()
         val stmt = db.createStatement()
@@ -213,6 +221,12 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    /**
+     * Gets all known categories from the Database
+     *
+     * @return ArrayList of known Categories
+     * @see Category
+     */
     fun getCategories(): ArrayList<Category> {
         val categoryList = ArrayList<Category>()
         val stmt = db.createStatement()
@@ -234,11 +248,19 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
-    fun getCommandsForApplications(programm: Application): ArrayList<Command> {
+    /**
+     * Gets all known Commands for a specific application from the Database
+     *
+     * @param application The application to get the Commands for
+     * @return ArrayList of known Commands
+     * @see Command
+     * @see Application
+     */
+    fun getCommandsForApplications(application: Application): ArrayList<Command> {
         val commandList = ArrayList<Command>()
         val stmt = db.createStatement()
         val sql = "SELECT * FROM Befehl JOIN Programm_Befehl ON  Programm_Befehl.Befehl_ID  = Befehl.ID JOIN Programm" +
-                " ON Programm_Befehl.Programm_ID = Programm.ID WHERE Programm.ID = ${programm.id};"
+                " ON Programm_Befehl.Programm_ID = Programm.ID WHERE Programm.ID = ${application.id};"
         try {
             val result = stmt!!.executeQuery(sql)
 
@@ -260,6 +282,14 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    /**
+     * Saves a Commands for a specific application into the Database
+     *
+     * @param application The application to save the Command for
+     * @param commandToSave The command to save
+     * @see Command
+     * @see Application
+     */
     fun saveCommandForApplication(commandToSave: Command, application: Application) {
         var id = 0
         var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
@@ -304,7 +334,12 @@ class Control constructor(private val mainView: MainView) {
         println(sql)
         executeUpdate(sql)
     }
-
+    /**
+     * Saves a specific application into the Database
+     *
+     * @param application The application to save
+     * @see Application
+     */
     fun saveApplication(application: Application) {
         var id = 0
         var sql = "SELECT COUNT(*), ID FROM Programm WHERE Name = '${application.name}';"
@@ -328,7 +363,7 @@ class Control constructor(private val mainView: MainView) {
                 0
             }
             sql = "INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) " +
-                    "VALUES ('${application.category_ID}', '${application.name}', '${application.path_32}', '${application.path_64}', '$active');"
+                    "VALUES ('${application.categoryID}', '${application.name}', '${application.path32}', '${application.path64}', '$active');"
             println(sql)
             executeUpdate(sql)
             sql = "SELECT ID FROM Programm WHERE Name = '${application.name}';"
@@ -345,7 +380,7 @@ class Control constructor(private val mainView: MainView) {
                 stmt.close()
             }
             sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
-                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${application.category_ID};"
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${application.categoryID};"
             try {
                 val result = stmt!!.executeQuery(sql)
 
@@ -366,6 +401,14 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    /**
+     * Deletes a Commands for a specific application from the Database
+     *
+     * @param application The application to delete the Command for
+     * @param commandToDelete The command to delete
+     * @see Command
+     * @see Application
+     */
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
         var sql = "DELETE FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id} AND Programm_ID = ${application.id};"
         println(sql)
@@ -405,6 +448,13 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    /**
+     * Deletes a specific application from the Database
+     *
+     * @param application The application to delete
+     * @see Command
+     * @see Application
+     */
     fun deleteApplication(application: Application) {
         var sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${application.id};"
         println(sql)
@@ -442,6 +492,12 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    /**
+     * Shuts down services
+     *
+     * This function is called to close the connection to the Database and shut down any other services that may still
+     * run
+     */
     fun onClose() {
         LOG.info("Closing APP")
         closeDatabase()

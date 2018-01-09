@@ -5,19 +5,19 @@ import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
 
-class Application(val id:Int, category_ID:Int, name:String, path_32:String, path_64:String?, active:Boolean) {
+class Application(val id:Int, categoryID:Int, name:String, path32:String, path64:String?, active:Boolean) {
 
-    val categoryIDProperty = SimpleIntegerProperty(category_ID)
-    var category_ID by categoryIDProperty
+    private val categoryIDProperty = SimpleIntegerProperty(categoryID)
+    var categoryID by categoryIDProperty
 
-    val nameProperty = SimpleStringProperty(name)
-    var name by nameProperty
+    private val nameProperty = SimpleStringProperty(name)
+    var name: String by nameProperty
 
-    val path32Property = SimpleStringProperty(path_32)
-    var path_32 by path32Property
+    private val path32Property = SimpleStringProperty(path32)
+    var path32: String by path32Property
 
-    val path64Property = SimpleStringProperty(path_64)
-    var path_64 by path64Property
+    private val path64Property = SimpleStringProperty(path64)
+    var path64: String by path64Property
 
     val activeProperty = SimpleBooleanProperty(active)
     var active by activeProperty

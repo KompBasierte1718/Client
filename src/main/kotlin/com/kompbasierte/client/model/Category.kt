@@ -5,6 +5,6 @@ import tornadofx.*
 
 class Category(val id: Int, name: String) {
 
-    val nameProperty = SimpleStringProperty(name)
-    var name by nameProperty
+    private val nameProperty = SimpleStringProperty(name)
+    var name: String by nameProperty
 }
