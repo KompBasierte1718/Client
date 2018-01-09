@@ -4,14 +4,15 @@ import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Category
 import com.kompbasierte.client.model.Command
 import com.kompbasierte.client.view.MainView
+import org.json.JSONObject
 import java.sql.*
 import java.sql.SQLException
 import java.sql.DriverManager
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
-
 class Control constructor(private val mainView: MainView) {
+    private val jsonLink = JSONLink(this, 51337)
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
@@ -20,6 +21,7 @@ class Control constructor(private val mainView: MainView) {
     private lateinit var db: Connection
 
     init {
+
         try {
             db = openDatabase()
         } catch (e: SQLException) {
@@ -502,6 +504,22 @@ class Control constructor(private val mainView: MainView) {
     fun onClose() {
         LOG.info("Closing APP")
         closeDatabase()
+        jsonLink.onClose()
+    }
+
+    fun registerDevice(arg :String) {
+        val json = JSONObject()
+        LOG.info("Schlüssel ist: "+arg)
+        json.put("Passwort", arg)
+        jsonLink.registerDevice(json,41337)
+    }
+
+    fun userRegisterConfirmation(status :Int) {
+        jsonLink.setUserRegisterConfirmation(status)
+    }
+
+    fun showUserConfirmation(){
+        mainView.openKeyConfirmationDialog()
     }
 }
 

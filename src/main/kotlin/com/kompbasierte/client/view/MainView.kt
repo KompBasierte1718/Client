@@ -23,6 +23,8 @@ class MainView : View("Hello Tornado") {
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
     private val genericWarningView = GenericWarningView()
     private val newOrEditCommandView = NewOrEditCommandView(this)
+    private val keyDialog = KeyDialog(this)
+    private val keyConfirmationDialog = KeyConfirmationDialog(this)
 
     //Define Layout
     override val root = borderpane {
@@ -30,6 +32,7 @@ class MainView : View("Hello Tornado") {
         top = menubar {
 
             menu("Datei") {
+                item("Gerät registrieren").onAction = EventHandler<ActionEvent>{openKeyDialog()}
                 item("Speichern") { isDisable = true }
                 item("Schließen").onAction = EventHandler<ActionEvent> {
                     LOG.info("Close Client")
@@ -151,6 +154,22 @@ class MainView : View("Hello Tornado") {
         refreshTableView()
     }
 
+    fun openKeyDialog() {
+        keyDialog.keyText.clear()
+        openInternalWindow(keyDialog)
+    }
+
+    fun transmitKeys(arg :String){
+        controller.registerDevice(arg)
+    }
+
+    fun openKeyConfirmationDialog(){
+        openInternalWindow(keyConfirmationDialog)
+    }
+
+    fun userRegisterConfirmation(status :Int){
+        controller.userRegisterConfirmation(status)
+    }
 }
 
 
