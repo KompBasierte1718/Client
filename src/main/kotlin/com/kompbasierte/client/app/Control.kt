@@ -9,11 +9,10 @@ import java.sql.*
 import java.sql.SQLException
 import java.sql.DriverManager
 import java.util.logging.Logger
-import javax.json.Json
 import kotlin.collections.ArrayList
 
 class Control constructor(private val mainView: MainView) {
-    private val jsonLink = JSONLink(this)
+    private val jsonLink = JSONLink(this, 51337)
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
@@ -448,14 +447,22 @@ class Control constructor(private val mainView: MainView) {
     fun onClose() {
         LOG.info("Closing APP")
         closeDatabase()
+        jsonLink.onClose()
     }
 
     fun registerDevice(arg :String) {
-        LOG.info("Schlüssel ist: "+arg)
         val json = JSONObject()
+        LOG.info("Schlüssel ist: "+arg)
         json.put("Passwort", arg)
-        jsonLink.sendJSON(json,41337)
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        jsonLink.registerDevice(json,41337)
+    }
+
+    fun userRegisterConfirmation(status :Int) {
+        jsonLink.setUserRegisterConfirmation(status)
+    }
+
+    fun showUserConfirmation(){
+        mainView.openKeyConfirmationDialog()
     }
 }
 

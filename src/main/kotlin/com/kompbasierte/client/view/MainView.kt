@@ -21,6 +21,7 @@ class MainView : View("Hello Tornado") {
     private val genericWarningView = GenericWarningView()
     private val newOrEditCommandView = NewOrEditCommandView(this)
     private val keyDialog = KeyDialog(this)
+    private val keyConfirmationDialog = KeyConfirmationDialog(this)
 
 
     override val root = borderpane {
@@ -127,6 +128,10 @@ class MainView : View("Hello Tornado") {
 
     fun transmitKeys(arg :String){
         controller.registerDevice(arg)
+    }
+
+    fun openKeyConfirmationDialog(){
+        openInternalWindow(keyConfirmationDialog)
     }
 }
 
