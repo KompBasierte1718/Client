@@ -10,24 +10,23 @@ import javafx.scene.input.KeyCombination.*
 import javafx.scene.input.KeyEvent
 import tornadofx.*
 
-class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") {
-    lateinit var nameText: TextField
-    lateinit var firstComboBox: ComboBox<String>
-    lateinit var secondComboBox: ComboBox<String>
-    lateinit var strgLabel: Label
-    lateinit var altLabel: Label
-    lateinit var shiftLabel: Label
-    lateinit var keyLabel: Label
+class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Command") {
+    private lateinit var nameText: TextField
+    private lateinit var strgLabel: Label
+    private lateinit var altLabel: Label
+    private lateinit var shiftLabel: Label
+    private lateinit var keyLabel: Label
 
-    var strgDown = false
-    var altDown = false
-    var shiftDown = false
-    var keyName = KeyCode.A
-    var pressedKeyWithMod = KeyCodeCombination(keyName, KeyCombination.ModifierValue.UP,
+    //Helper Vars for Key-Detection
+    private var strgDown = false
+    private var altDown = false
+    private var shiftDown = false
+    private var keyName = KeyCode.A
+    private var pressedKeyWithMod = KeyCodeCombination(keyName, KeyCombination.ModifierValue.UP,
             KeyCombination.ModifierValue.UP, KeyCombination.ModifierValue.UP,
             KeyCombination.ModifierValue.UP, KeyCombination.ModifierValue.UP)
 
-    //    lateinit var thirdComboBox: ComboBox<String>
+    //Define Layout
     override val root = vbox {
         hbox {
             label {
@@ -39,71 +38,71 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
         tabpane {
             tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
 
+            //Button um nach Keybordeingaben zu lauschen
             tab("Tastendruck") {
                 form {
                     fieldset {
                         field("Shortcut") {
-                            /*firstComboBox = combobox<String> {
-                                items.add("Strg")
-                                items.add("Alt")
-                                items.add("Shift")
-                            }
-                            label("+")
-                            secondComboBox = combobox<String> {
-                                items.add("+")
-                                items.add("-")
-                            }
-                        }
-                    }
-                }*/
                             val listenerButton = button("Lauschen") {
                                 var listen = false
                                 action {
                                     listen = !listen
                                     if (listen) {
                                         text = "Stop"
+
+                                        //KeyListener
                                         onKeyPressedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
                                             if (e != null) {
-                                                println(e.code.toString())
-
+                                                //Check CTRL-Status
                                                 strgDown = e.isShortcutDown
                                                 val controlModifier: KeyCombination.ModifierValue
-                                                if (strgDown) {
-                                                    controlModifier = ModifierValue.DOWN
+                                                controlModifier = if (strgDown) {
+                                                    ModifierValue.DOWN
                                                 } else {
-                                                    controlModifier = ModifierValue.UP
+                                                    ModifierValue.UP
                                                 }
 
+                                                //Check Alt-Status
                                                 altDown = e.isAltDown
                                                 val altModifier: KeyCombination.ModifierValue
-                                                if (strgDown) {
-                                                    altModifier = ModifierValue.DOWN
+                                                altModifier = if (altDown) {
+                                                    ModifierValue.DOWN
                                                 } else {
-                                                    altModifier = ModifierValue.UP
+                                                    ModifierValue.UP
                                                 }
 
+                                                //Check Shift-Status
                                                 shiftDown = e.isShiftDown
                                                 val shiftModifier: KeyCombination.ModifierValue
-                                                if (strgDown) {
-                                                    shiftModifier = ModifierValue.DOWN
+                                                shiftModifier = if (shiftDown) {
+                                                    ModifierValue.DOWN
                                                 } else {
-                                                    shiftModifier = ModifierValue.UP
+                                                    ModifierValue.UP
                                                 }
 
-                                                keyName = e.code
-                                                if (!e.code.isModifierKey) {
+                                                //Save for unknown keys on special keyboads
+                                                if (e.code == KeyCode.UNDEFINED) {
+                                                    master.showWarning("Taste nicht erkannt, bitte versuchen Sie " +
+                                                            "eine andere")
+                                                }else{
+                                                    keyName=e.code
+                                                }
+                                                //Save for modifier key and unknown keys
+                                                if (!e.code.isModifierKey && e.code != KeyCode.UNDEFINED) {
                                                     //SHIFT, CTRL, ALT, META, SHORTCUT
                                                     pressedKeyWithMod = KeyCodeCombination(e.code, shiftModifier,
-                                                            controlModifier, altModifier, controlModifier,
-                                                            controlModifier)
+                                                            controlModifier, altModifier, ModifierValue.UP,
+                                                            ModifierValue.UP)
                                                 }
+                                                //Consume KeyEvent to prevent further processing of it
                                                 e.consume()
+                                                //refresh the View to show new Values
                                                 refreshPane()
                                             }
                                         }))
-                                        /*onKeyReleasedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
+                                        /* TODO Unused right now, for later usage
+                                        onKeyReleasedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
                                             if (e != null) {
-                                                println(e.code.toString())
                                                 strgDown = e.isShortcutDown
                                                 altDown = e.isAltDown
                                                 shiftDown = e.isShiftDown
@@ -141,8 +140,7 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
             button("Save") {
                 action {
                     master.saveCommandForApplication(Command(0, nameText.text, nameText.text,
-                            ""+pressedKeyWithMod, true))
-                    //TODO Change CommandKlasse für KeyValues
+                            ""+pressedKeyWithMod.toString(), true))
                     close()
                 }
             }
@@ -159,6 +157,7 @@ class NewOrEditCommandView(val master: MainView) : Fragment("New/Edit Command") 
         altLabel.isVisible = altDown
         shiftLabel.isVisible = shiftDown
         if (!keyName.isModifierKey) {
+            //Don't show modifier keynames at the end since they are already displayed in front
             keyLabel.text = keyName.getName()
         }
         onRefresh()
