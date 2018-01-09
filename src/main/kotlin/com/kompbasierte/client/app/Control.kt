@@ -86,7 +86,7 @@ class Control constructor(private val mainView: MainView) {
         val sqlList = ArrayList<String>()
         sqlList.add("CREATE TABLE IF NOT EXISTS 'Befehl' (\n" +
                 " 'ID'        INTEGER NOT NULL,\n" +
-                " 'Name'      TEXT NOT NULL CHECK(Name != ''),\n" +
+                " 'Name'      TEXT NOT NULL UNIQUE CHECK(Name != ''),\n" +
                 " 'VACallout' TEXT NOT NULL CHECK(VACallout != ''),\n" +
                 " 'shortcut'  TEXT NOT NULL CHECK(shortcut != ''),\n" +
                 " 'Aktiv'     INTEGER NOT NULL CHECK(Aktiv > -1 AND Aktiv < 2),\n" +
@@ -110,7 +110,7 @@ class Control constructor(private val mainView: MainView) {
         sqlList.add("CREATE TABLE IF NOT EXISTS 'Programm' (\n" +
                 " 'ID'           INTEGER NOT NULL,\n" +
                 " 'Kategorie_ID' INTEGER NOT NULL,\n" +
-                " 'Name'         TEXT NOT NULL CHECK(Name != ''),\n" +
+                " 'Name'         TEXT NOT NULL UNIQUE CHECK(Name != ''),\n" +
                 " 'Pfad_32'      TEXT CHECK(Pfad_32 != ''),\n" +
                 " 'Pfad_64'      TEXT CHECK(Pfad_64 != '' AND (Pfad_32 != 0 OR Pfad_64 != 0)),\n" +
                 " 'Aktiv'        INTEGER NOT NULL CHECK(Aktiv > -1 AND Aktiv < 2),\n" +
@@ -213,6 +213,54 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    fun getApplication(id: Int): Application? {
+        val app: Application
+        if(id < 1) {
+            return null
+        }
+        val stmt = db.createStatement()
+        val sql = "SELECT * FROM Programm WHERE ID = $id;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst)
+                result.next()
+            val active: Boolean = result.getInt("Aktiv") == 1
+            app = Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
+                    result.getString("Name"), result.getString("Pfad_32"), result.getString("Pfad_64"), active)
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return null
+        } finally {
+            stmt.close()
+        }
+        return app
+    }
+
+    fun getApplication(name: String): Application? {
+        val app: Application
+        if(name == "") {
+            return null
+        }
+        val stmt = db.createStatement()
+        val sql = "SELECT * FROM Programm WHERE ID = $name;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst)
+                result.next()
+            val active: Boolean = result.getInt("Aktiv") == 1
+            app = Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
+                    result.getString("Name"), result.getString("Pfad_32"), result.getString("Pfad_64"), active)
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return null
+        } finally {
+            stmt.close()
+        }
+        return app
+    }
+
     fun getCategories(): ArrayList<Category> {
         val categoryList = ArrayList<Category>()
         val stmt = db.createStatement()
@@ -260,6 +308,54 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
+    fun getCommand(id: Int): Command? {
+        val command: Command
+        if(id < 1) {
+            return null
+        }
+        val stmt = db.createStatement()
+        val sql = "SELECT * FROM Befehl WHERE ID = $id;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst)
+                result.next()
+            val active: Boolean = result.getInt("Aktiv") == 1
+              command = Command(result.getInt("ID"), result.getString("Name"),
+                    result.getString("VACallout"), result.getString("shortcut"), active)
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return null
+        } finally {
+            stmt.close()
+        }
+        return command
+    }
+
+    fun getCommand(name: String): Command? {
+        val command: Command
+        if(name == "") {
+            return null
+        }
+        val stmt = db.createStatement()
+        val sql = "SELECT * FROM Befehl WHERE ID = $name;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst)
+                result.next()
+            val active: Boolean = result.getInt("Aktiv") == 1
+            command = Command(result.getInt("ID"), result.getString("Name"),
+                    result.getString("VACallout"), result.getString("shortcut"), active)
+            result.close()
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return null
+        } finally {
+            stmt.close()
+        }
+        return command
+    }
+
     fun saveCommandForApplication(commandToSave: Command, application: Application) {
         var id = 0
         var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
@@ -277,11 +373,7 @@ class Control constructor(private val mainView: MainView) {
             stmt.close()
         }
         if (id == 0) {
-            val active = if (commandToSave.active) {
-                1
-            } else {
-                0
-            }
+            val active = boolToInt(commandToSave.active)
             sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
                     "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
             println(sql)
@@ -322,11 +414,7 @@ class Control constructor(private val mainView: MainView) {
             stmt.close()
         }
         if (id == 0) {
-            val active = if (application.active) {
-                1
-            } else {
-                0
-            }
+            val active = boolToInt(application.active)
             sql = "INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) " +
                     "VALUES ('${application.category_ID}', '${application.name}', '${application.path_32}', '${application.path_64}', '$active');"
             println(sql)
@@ -363,6 +451,106 @@ class Control constructor(private val mainView: MainView) {
             } finally {
                 stmt.close()
             }
+        }
+    }
+
+    fun updateCommand(oldCommand: Command, newCommand: Command) {
+        if(oldCommand.id == 0 || newCommand.id == 0 || oldCommand.id != newCommand.id) {
+            return
+        }
+        var sql : String
+        if(oldCommand.name != newCommand.name) {
+            sql = "UPDATE Befehl SET Name = '${newCommand.name}' WHERE ID = ${newCommand.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+        if(oldCommand.vACallout != newCommand.vACallout) {
+            sql = "UPDATE Befehl SET VACallout = '${newCommand.vACallout}' WHERE ID = ${newCommand.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+        if(oldCommand.shortcut != newCommand.shortcut) {
+            sql = "UPDATE Befehl SET shortcut = '${newCommand.shortcut}' WHERE ID = ${newCommand.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+        if(oldCommand.active != newCommand.active) {
+            val active = boolToInt(newCommand.active)
+            sql = "UPDATE Befehl SET Aktiv = $active WHERE ID = ${newCommand.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+    }
+
+    fun updateApplication(oldApplication: Application, newApplication: Application) {
+        if(oldApplication.id == 0 || newApplication.id == 0 || oldApplication.id != newApplication.id) {
+            return
+        }
+        var sql : String
+        if(oldApplication.category_ID != newApplication.category_ID) {
+            val stmt = db.createStatement()
+            sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${oldApplication.category_ID};"
+            try {
+                val result = stmt!!.executeQuery(sql)
+
+                while (result.isBeforeFirst)
+                    result.next()
+                while (!result.isAfterLast) {
+                    sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${newApplication.id} AND Befehl_ID = ${result.getInt("ID")};"
+                    println(sql)
+                    executeUpdate(sql)
+                    result.next()
+                }
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+            sql = "UPDATE Programm SET Kategorie_ID = '${newApplication.category_ID}' WHERE ID = ${newApplication.id};"
+            println(sql)
+            executeUpdate(sql)
+            sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${newApplication.category_ID};"
+            try {
+                val result = stmt!!.executeQuery(sql)
+
+                while (result.isBeforeFirst)
+                    result.next()
+                while (!result.isAfterLast) {
+                    sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES ('${newApplication.id}', '${result.getInt("ID")}')"
+                    println(sql)
+                    executeUpdate(sql)
+                    result.next()
+                }
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+        }
+        if(oldApplication.name != newApplication.name) {
+            sql = "UPDATE Programm SET Name = '${newApplication.name}' WHERE ID = ${newApplication.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+        if(oldApplication.path_32 != newApplication.path_32) {
+            sql = "UPDATE Programm SET Pfad_32 = '${newApplication.path_32}' WHERE ID = ${newApplication.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+        if(oldApplication.path_64 != newApplication.path_64) {
+            sql = "UPDATE Programm SET Pfad_64 = '${newApplication.path_64}' WHERE ID = ${newApplication.id};"
+            println(sql)
+            executeUpdate(sql)
+        }
+        if(oldApplication.active != newApplication.active) {
+            val active = boolToInt(newApplication.active)
+            sql = "UPDATE Programm SET Aktiv = '$active' WHERE ID = ${newApplication.id};"
+            println(sql)
+            executeUpdate(sql)
         }
     }
 
@@ -412,6 +600,13 @@ class Control constructor(private val mainView: MainView) {
         sql = "DELETE FROM Programm WHERE ID = '${application.id}';"
         println(sql)
         executeUpdate(sql)
+    }
+
+    private fun boolToInt(b: Boolean) : Int {
+        if (b) {
+            return  1
+        }
+        return  0
     }
 
     private fun execute(sql: String) {
