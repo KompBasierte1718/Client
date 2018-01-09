@@ -84,7 +84,7 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
                     }
                 }
                 button("Befehl bearbeiten") {
-                    TODO("Not implemented")
+                    //TODO("Not implemented")
                 }
                 button("Löschen") {
                     action {
