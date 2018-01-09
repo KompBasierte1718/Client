@@ -24,7 +24,8 @@ class Control constructor(private val mainView: MainView) {
             db = openDatabase()
         } catch (e: SQLException) {
             mainView.showWarning("Fehler beim Verbinden mit der Datenbank. Bitte neustarten. Sollte der Fehler " +
-                    "bestehen bleiben wenden Sie sich bitte an das Team auf https://github.com/KompBasierte1718/Client")
+                    "bestehen bleiben wenden Sie sich bitte an das Team auf https://github.com/KompBasierte1718/Client",
+                    true)
         }
         if (!isDatabase()) {
             LOG.info("Database not complete, recreating")

@@ -55,7 +55,7 @@ class MainView : View("Hello Tornado") {
 //        bottom = button("Trigger Warning")
 //        {
 //            action {
-//                showWarning("Hier könnte ihre Warnung stehen!")
+//                showWarning("Hier könnte ihre Warnung stehen!", true)
 //            }
 //        }
 
@@ -84,6 +84,13 @@ class MainView : View("Hello Tornado") {
     fun showWarning(text: String) {
         LOG.info("Show Warning: "+text)
         genericWarningView.setWarningText(text)
+        genericWarningView.openModal()
+    }
+
+    fun showWarning(text: String, close: Boolean) {
+        LOG.info("Show closing Warning: "+text)
+        genericWarningView.setWarningText(text)
+        genericWarningView.setCloseBehaviour(close)
         genericWarningView.openModal()
     }
 

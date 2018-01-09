@@ -84,6 +84,8 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
                     }
                 }
                 button("Befehl bearbeiten") {
+                    isDisable = true
+                    tooltip = Tooltip("Später implementiert")
                     //TODO("Not implemented")
                 }
                 button("Löschen") {
