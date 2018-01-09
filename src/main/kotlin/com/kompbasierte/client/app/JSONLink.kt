@@ -11,7 +11,7 @@ import kotlin.concurrent.thread
 
 class JSONLink(private val control: Control, private val port: Int) {
 
-    private lateinit var host: String
+    private var host = "ec2-54-93-34-8.eu-central-1.compute.amazonaws.com"
     private lateinit var taskSocket: Socket
     private lateinit var taskInput: BufferedReader
     private lateinit var taskOutputStream: OutputStream
@@ -30,7 +30,6 @@ class JSONLink(private val control: Control, private val port: Int) {
 
     fun initialiseConnection(){
         try {
-            host = "ec2-54-93-34-8.eu-central-1.compute.amazonaws.com"
             taskSocket = Socket(host, port)
             taskInput = BufferedReader(InputStreamReader(taskSocket.getInputStream()))
             taskOutputStream = taskSocket.getOutputStream()

@@ -17,13 +17,13 @@ class KeyConfirmationDialog(private val master: MainView) : Fragment("Gerätereg
                 buttonbar {
                     button("Ja") {
                         action {
-                            master.controller.userRegisterConfirmation(1)
+                            master.userRegisterConfirmation(1)
                             close()
                         }
                     }
                     button("Nein") {
                         action {
-                            master.controller.userRegisterConfirmation(-1)
+                            master.userRegisterConfirmation(-1)
                             close()
                         }
                     }

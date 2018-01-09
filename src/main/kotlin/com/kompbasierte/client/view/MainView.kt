@@ -16,7 +16,7 @@ class MainView : View("Hello Tornado") {
         private val LOG = Logger.getLogger(MainView::class.java.name)
     }
 
-    val controller = Control(this)
+    private val controller = Control(this)
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
     private val genericWarningView = GenericWarningView()
     private val newOrEditCommandView = NewOrEditCommandView(this)
@@ -132,6 +132,10 @@ class MainView : View("Hello Tornado") {
 
     fun openKeyConfirmationDialog(){
         openInternalWindow(keyConfirmationDialog)
+    }
+
+    fun userRegisterConfirmation(status :Int){
+        controller.userRegisterConfirmation(status)
     }
 }
 
