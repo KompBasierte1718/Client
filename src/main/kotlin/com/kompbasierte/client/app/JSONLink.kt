@@ -20,8 +20,8 @@ class JSONLink(private val control: Control, private val port: Int) {
 
 
     init {
-        initialiseConnection()
-        taskHandler()
+        //initialiseConnection()
+        //taskHandler()
     }
 
     fun setUserRegisterConfirmation(status: Int) {
@@ -85,7 +85,6 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                     val json = JSONObject()
 
-                    json.put("isprogram", true)
                     json.put("program", "VLC")
                     json.put("task","starten")
 

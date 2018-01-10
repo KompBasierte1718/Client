@@ -3,8 +3,10 @@ package com.kompbasierte.client.app
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Category
 import com.kompbasierte.client.model.Command
+import com.kompbasierte.client.app.TaskExecutioner
 import com.kompbasierte.client.view.MainView
 import org.json.JSONObject
+import tornadofx.*
 import java.sql.*
 import java.sql.SQLException
 import java.sql.DriverManager
@@ -13,6 +15,7 @@ import kotlin.collections.ArrayList
 
 class Control constructor(private val mainView: MainView) {
     private val jsonLink = JSONLink(this, 51337)
+    private val taskExec = TaskExecutioner(mainView)
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
@@ -145,7 +148,7 @@ class Control constructor(private val mainView: MainView) {
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (2, 'Spotify', 'C:\\Users\\admin\\AppData\\Roaming\\Spotify', 0, 0);")//d
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'Paint', 'C:\\WINDOWS\\system32\\mspaint.exe', 'C:\\WINDOWS\\SysWOW64\\mspaint.exe', 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'PDF Architekt 5', 0, 'C:\\Program Files\\PDF Architect 5\\architect.exe', 1);")
-        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Google Chrome', 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe', 0, 1);")
+        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'GoogleChrome', '/opt/google/chrome/google-chrome', 0, 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Mozilla Firefox', 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe', 0, 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Microsoft Edge', 'C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe', 'hodor', 0);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'Rechner', 'C:\\Windows\\System32\\calc.exe', 'C:\\Windows\\SysWOW64\\calc.exe', 0);")
@@ -268,7 +271,7 @@ class Control constructor(private val mainView: MainView) {
             return null
         }
         val stmt = db.createStatement()
-        val sql = "SELECT * FROM Programm WHERE ID = $name;"
+        val sql = "SELECT * FROM Programm WHERE Name = $name;"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
@@ -764,7 +767,19 @@ class Control constructor(private val mainView: MainView) {
     }
 
     fun executeTask(json :JSONObject) {
-
+        val progName: String = json.get("program").toString()
+        val app = getApplication(6)
+        val pfad: String
+        if(app != null) {
+            if (app.path32 != null) {
+                pfad = app.path32
+            } else {
+                pfad = app.path64
+            }
+        } else {
+            return
+        }
+        taskExec.executeTask(pfad)
     }
 }
 

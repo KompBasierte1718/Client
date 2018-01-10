@@ -7,6 +7,7 @@ import com.kompbasierte.client.model.Category
 import javafx.application.Platform
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
+import org.json.JSONObject
 import tornadofx.*
 import java.util.logging.Logger
 
@@ -37,6 +38,11 @@ class MainView : View("Hello Tornado") {
             menu("Datei") {
                 item("Gerät registrieren").onAction = EventHandler<ActionEvent>{openKeyDialog()}
                 item("Speichern") { isDisable = true }
+                item("Test Taskexec").onAction = EventHandler<ActionEvent> {
+                    val json = JSONObject()
+                    json.put("program", "6")
+                    controller.executeTask(json)
+                }
                 item("Schließen").onAction = EventHandler<ActionEvent> {
                     LOG.info("Close Client")
                     Platform.exit()
