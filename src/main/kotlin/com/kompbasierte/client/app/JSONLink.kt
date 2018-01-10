@@ -1,6 +1,5 @@
 package com.kompbasierte.client.app
 
-import javafx.application.Platform
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -8,6 +7,8 @@ import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.net.Socket
 import kotlin.concurrent.thread
+
+
 
 class JSONLink(private val control: Control, private val port: Int) {
 
@@ -20,8 +21,8 @@ class JSONLink(private val control: Control, private val port: Int) {
 
 
     init {
-        initialiseConnection()
-        taskHandler()
+        //initialiseConnection()
+        //taskHandler()
     }
 
     fun setUserRegisterConfirmation(status: Int) {
@@ -50,21 +51,37 @@ class JSONLink(private val control: Control, private val port: Int) {
             objectoutputstream.writeObject(json.toString())
             outputstream.flush()
 
-            while (input.read() == -1) {
-                //TODO("Read incoming JSON File")
-                println("test")
+            var buffer :CharArray = charArrayOf(' ')
+            var string = ""
+
+            //Waiting for Server Response
+            while (input.read(buffer) == -1){
+                Thread.sleep(500)
             }
 
-            control.showUserConfirmation()
+            string += buffer[0]
+
+            while(buffer[0] != '\u0000'){
+                input.read(buffer)
+                string += buffer[0]
+            }
+
+            var serverResponse = JSONObject(string)
+            control.showUserConfirmation(serverResponse.get("answer").toString())
 
             while (userRegisterConfirmation == 0) {
                 Thread.sleep(500)
             }
 
-            var confirmationJson = JSONObject()
-            confirmationJson.put("confirmation", true)
+            val confirmationJson = JSONObject()
 
-            objectoutputstream.writeObject(confirmationJson)
+            if(userRegisterConfirmation == -1) {
+                confirmationJson.put("confirmation", false)
+            } else {
+                confirmationJson.put("confirmation", true)
+            }
+
+            objectoutputstream.writeObject(confirmationJson.toString())
             outputstream.flush()
 
             registerSocket.close()
@@ -98,6 +115,10 @@ class JSONLink(private val control: Control, private val port: Int) {
                 }
             } catch (e: Exception) {
                 control.fatalClose("Ein Netzwerkfehler ist aufgetreten! Das Programm wird beendet")
+            } finally {
+                if(!taskSocket.isClosed) {
+                    taskSocket.close()
+                }
             }
         }
     }

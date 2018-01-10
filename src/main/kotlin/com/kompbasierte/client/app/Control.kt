@@ -747,7 +747,7 @@ class Control constructor(private val mainView: MainView) {
     fun registerDevice(arg :String) {
         val json = JSONObject()
         LOG.info("Schlüssel ist: "+arg)
-        json.put("Passwort", arg)
+        json.put("password", arg)
         jsonLink.registerDevice(json,41337)
     }
 
@@ -755,8 +755,8 @@ class Control constructor(private val mainView: MainView) {
         jsonLink.setUserRegisterConfirmation(status)
     }
 
-    fun showUserConfirmation(){
-        mainView.openKeyConfirmationDialog()
+    fun showUserConfirmation(device :String){
+        mainView.openKeyConfirmationDialog(device)
     }
 
     fun fatalClose(text: String) {
