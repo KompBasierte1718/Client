@@ -20,22 +20,22 @@ class JSONLink(private val control: Control, private val port: Int) {
 
 
     init {
-            initialiseConnection()
-            taskHandler()
+        initialiseConnection()
+        taskHandler()
     }
 
-    fun setUserRegisterConfirmation(status :Int){
+    fun setUserRegisterConfirmation(status: Int) {
         userRegisterConfirmation = status
     }
 
-    fun initialiseConnection(){
+    fun initialiseConnection() {
         try {
             taskSocket = Socket(host, port)
             taskInput = BufferedReader(InputStreamReader(taskSocket.getInputStream()))
             taskOutputStream = taskSocket.getOutputStream()
-        } catch(e :Exception) {
+        } catch (e: Exception) {
+            control.fatalClose("Konnte keine Verbindung zum Server herstellen!")
             return
-            Platform.exit()
         }
     }
 
@@ -57,7 +57,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
             control.showUserConfirmation()
 
-            while(userRegisterConfirmation == 0){
+            while (userRegisterConfirmation == 0) {
                 Thread.sleep(500)
             }
 
@@ -90,8 +90,8 @@ class JSONLink(private val control: Control, private val port: Int) {
                     objectoutputstream.writeObject(json)
                     taskOutputStream.flush()
                 }
-            }catch(e :Exception){
-                Platform.exit()
+            } catch (e: Exception) {
+                control.fatalClose("Ein Netzwerkfehler ist aufgetreten! Das Programm wird beendet")
             }
         }
     }

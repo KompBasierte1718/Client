@@ -16,15 +16,18 @@ class MainView : View("Hello Tornado") {
         private val LOG = Logger.getLogger(MainView::class.java.name)
     }
 
+    //instanciate warning view to display fatal errors
+    private val genericWarningView = GenericWarningView()
+
     //Create a Control
     private val controller = Control(this)
 
     //instanciate all Views
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
-    private val genericWarningView = GenericWarningView()
     private val newOrEditCommandView = NewOrEditCommandView(this)
     private val keyDialog = KeyDialog(this)
     private val keyConfirmationDialog = KeyConfirmationDialog(this)
+
 
     //Define Layout
     override val root = borderpane {
@@ -87,14 +90,14 @@ class MainView : View("Hello Tornado") {
     fun showWarning(text: String) {
         LOG.info("Show Warning: "+text)
         genericWarningView.setWarningText(text)
-        genericWarningView.openModal()
+        runAsync{}ui {genericWarningView.openModal()}
     }
 
     fun showWarning(text: String, close: Boolean) {
         LOG.info("Show closing Warning: "+text)
         genericWarningView.setWarningText(text)
         genericWarningView.setCloseBehaviour(close)
-        genericWarningView.openModal()
+        runAsync{}ui {genericWarningView.openModal()}
     }
 
     /**

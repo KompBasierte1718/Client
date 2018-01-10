@@ -758,5 +758,9 @@ class Control constructor(private val mainView: MainView) {
     fun showUserConfirmation(){
         mainView.openKeyConfirmationDialog()
     }
+
+    fun fatalClose(text: String) {
+        mainView.showWarning(text, true)
+    }
 }
 
