@@ -85,6 +85,12 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                     val json = JSONObject()
 
+                    json.put("isprogram", true)
+                    json.put("program", "VLC")
+                    json.put("task","starten")
+
+                    control.executeTask(json)
+
                     //TODO("Add success/failure to JSON")
 
                     objectoutputstream.writeObject(json)

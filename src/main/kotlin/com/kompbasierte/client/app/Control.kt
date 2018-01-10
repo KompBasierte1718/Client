@@ -762,5 +762,9 @@ class Control constructor(private val mainView: MainView) {
     fun fatalClose(text: String) {
         mainView.showWarning(text, true)
     }
+
+    fun executeTask(json :JSONObject) {
+
+    }
 }
 
