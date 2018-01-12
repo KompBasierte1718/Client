@@ -150,7 +150,7 @@ class Control constructor(private val mainView: MainView) {
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'PDF Architekt 5', 0, 'C:\\Program Files\\PDF Architect 5\\architect.exe', 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'GoogleChrome', '/opt/google/chrome/google-chrome', 0, 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Mozilla Firefox', 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe', 0, 1);")
-        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Microsoft Edge', 'C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe', 'hodor', 0);")
+        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Microsoft Edge', 'C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\\MicrosoftEdge.exe', 'hodor', 0);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'Rechner', 'C:\\Windows\\System32\\calc.exe', 'C:\\Windows\\SysWOW64\\calc.exe', 0);")
         sqlList.add("INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) VALUES ('NeuerTab', 'Neuer Tab öffnen', 'Strg+T', 1);")
         sqlList.add("INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) VALUES ('Verlauf', 'Verlauf öffnen', 'Strg+H', 0);")
@@ -271,7 +271,7 @@ class Control constructor(private val mainView: MainView) {
             return null
         }
         val stmt = db.createStatement()
-        val sql = "SELECT * FROM Programm WHERE Name = $name;"
+        val sql = "SELECT * FROM Programm WHERE Name = '$name';"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
@@ -394,7 +394,7 @@ class Control constructor(private val mainView: MainView) {
             return null
         }
         val stmt = db.createStatement()
-        val sql = "SELECT * FROM Befehl WHERE ID = $name;"
+        val sql = "SELECT * FROM Befehl WHERE Name = '$name';"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
@@ -768,10 +768,10 @@ class Control constructor(private val mainView: MainView) {
 
     fun executeTask(json :JSONObject) {
         val progName: String = json.get("program").toString()
-        val app = getApplication(6)
+        val app = getApplication(5)
         val pfad: String
         if(app != null) {
-            if (app.path32 != null) {
+            if (app.path32 != "0") {
                 pfad = app.path32
             } else {
                 pfad = app.path64
