@@ -172,8 +172,9 @@ class MainView : View("Hello Tornado") {
         controller.registerDevice(arg)
     }
 
-    fun openKeyConfirmationDialog(){
-        openInternalWindow(keyConfirmationDialog)
+    fun openKeyConfirmationDialog(device :String){
+        keyConfirmationDialog.setDeviceType(device)
+       runAsync {  }ui { openInternalWindow(keyConfirmationDialog)}
     }
 
     fun userRegisterConfirmation(status :Int){
