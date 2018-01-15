@@ -25,6 +25,7 @@ class MainView : View("Hello Tornado") {
 
     //instanciate all Views
     private val applicationsAndCommandsView = ApplicationsAndCommandsTableView(this)
+    private val newOrEditApplicationView = NewOrEditApplicationView(this)
     private val newOrEditCommandView = NewOrEditCommandView(this)
     private val keyDialog = KeyDialog(this)
     private val keyConfirmationDialog = KeyConfirmationDialog(this)
@@ -145,8 +146,15 @@ class MainView : View("Hello Tornado") {
     }
 
     fun openApplicationEdit() {
-        val newOrEditApplicationView = NewOrEditApplicationView(this)
         openInternalWindow(newOrEditApplicationView)
+    }
+    fun openApplicationEdit(applicationToEdit: Application?) {
+        if (applicationToEdit != null) {
+            newOrEditApplicationView.openEditObject(applicationToEdit)
+            openInternalWindow(newOrEditApplicationView)
+        }else{
+            showWarning("Bitte eine Applikation auswählen")
+        }
     }
 
     fun saveApplication(application: Application){

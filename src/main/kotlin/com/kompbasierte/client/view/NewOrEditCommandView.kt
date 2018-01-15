@@ -12,6 +12,7 @@ import tornadofx.*
 
 class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Command") {
     private lateinit var nameText: TextField
+    private lateinit var activeCheckbox: CheckBox
     private lateinit var strgLabel: Label
     private lateinit var altLabel: Label
     private lateinit var shiftLabel: Label
@@ -29,10 +30,17 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
     //Define Layout
     override val root = vbox {
         hbox {
-            label {
-                text = "Name: "
+            form {
+                fieldset {
+                    field("Name") {
+                        nameText = textfield {}
+                    }
+
+                    field("Aktiv") {
+                        activeCheckbox = checkbox { }
+                    }
+                }
             }
-            nameText = textfield {}
         }
         spacing = 10.0
         tabpane {
@@ -84,8 +92,8 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                                                 if (e.code == KeyCode.UNDEFINED) {
                                                     master.showWarning("Taste nicht erkannt, bitte versuchen Sie " +
                                                             "eine andere")
-                                                }else{
-                                                    keyName=e.code
+                                                } else {
+                                                    keyName = e.code
                                                 }
                                                 //Save for modifier key and unknown keys
                                                 if (!e.code.isModifierKey && e.code != KeyCode.UNDEFINED) {
@@ -140,7 +148,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
             button("Save") {
                 action {
                     master.saveCommandForApplication(Command(0, nameText.text, nameText.text,
-                            ""+pressedKeyWithMod.toString(), true))
+                            "" + pressedKeyWithMod.toString(), activeCheckbox.isSelected))
                     close()
                 }
             }

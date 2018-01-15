@@ -468,6 +468,16 @@ class Control constructor(private val mainView: MainView) {
      */
     fun saveApplication(application: Application) {
         var id = 0
+        //vereinfacht das Updateverhalten aus der View heraus
+        //ID!=0 bedeutet die App existiert schon
+        if (application.id!=0){
+            val oldApplication=getApplication(application.id)
+            if (oldApplication != null) {
+                updateApplication(oldApplication, application)
+            }else{
+                mainView.showWarning("Fehler beim Update")
+            }
+        }
         var sql = "SELECT COUNT(*), ID FROM Programm WHERE Name = '${application.name}';"
         val stmt = db.createStatement()
         try {

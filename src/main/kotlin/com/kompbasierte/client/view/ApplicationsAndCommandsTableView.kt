@@ -35,7 +35,8 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
                             spacing = 10.0
                         }
                         checkbox("", it.activeProperty) {
-
+                            isDisable=true
+                            tooltip= Tooltip("Bitte bearbeiten, um zu (de-)aktivieren")
                             alignment = Pos.CENTER_RIGHT
                         }
                     }
@@ -55,9 +56,7 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
                     }
                 }
                 button("Applikation bearbeiten") {
-                    //TODO Funktionalität einfügen
-                    isDisable = true
-                    tooltip = Tooltip("Später implementiert")
+                    action { master.openApplicationEdit(listView.selectedItem) }
                 }
                 button("Applikation löschen") {
                     action {
@@ -71,7 +70,7 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
             //CommandTable on the right
             table = tableview(commands.observable()) {
                 isEditable = true
-                column("active", Command::activeProperty).useCheckbox()
+                column("active", Command::activeProperty).useCheckbox(isDisabled)
                 column("Name", Command::nameProperty).useTextField()
                 column("VACallout", Command::vACalloutProperty).useTextField()
                 column("shortcut", Command::shortcutProperty).useTextField()
