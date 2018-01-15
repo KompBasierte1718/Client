@@ -271,7 +271,7 @@ class Control constructor(private val mainView: MainView) {
             return null
         }
         val stmt = db.createStatement()
-        val sql = "SELECT * FROM Programm WHERE Name = $name;"
+        val sql = "SELECT * FROM Programm WHERE Name = '$name';"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
@@ -768,7 +768,7 @@ class Control constructor(private val mainView: MainView) {
 
     fun executeTask(json :JSONObject) {
         val progName: String = json.get("program").toString()
-        val app = getApplication(6)
+        val app = getApplication(progName)
         val pfad: String
         if(app != null) {
             if (app.path32 != null) {
