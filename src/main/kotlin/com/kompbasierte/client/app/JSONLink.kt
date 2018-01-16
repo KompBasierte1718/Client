@@ -40,54 +40,58 @@ class JSONLink(private val control: Control, private val port: Int) {
             lateinit var registerSocket: Socket
             try {
                 registerSocket = Socket(host, port)
-                val outputstream = registerSocket.getOutputStream()
-                //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
-                val objectoutputstream = ObjectOutputStream(outputstream)
-                val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
+                try{
+                    val outputstream = registerSocket.getOutputStream()
+                    //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
+                    val objectoutputstream = ObjectOutputStream(outputstream)
+                    val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
 
-                objectoutputstream.writeObject(json.toString())
-                outputstream.flush()
+                    objectoutputstream.writeObject(json.toString())
+                    outputstream.flush()
 
-                var buffer: CharArray = charArrayOf(' ')
-                var string = ""
+                    var buffer: CharArray = charArrayOf(' ')
+                    var string = ""
 
-                //Waiting for Server Response
-                while (input.read(buffer) == -1) {
-                    Thread.sleep(500)
-                }
+                    //Waiting for Server Response
+                    while (input.read(buffer) == -1) {
+                        Thread.sleep(500)
+                    }
 
-                string += buffer[0]
-
-                while (buffer[0] != '\u0000') {
-                    input.read(buffer)
                     string += buffer[0]
+
+                    while (buffer[0] != '\u0000') {
+                        input.read(buffer)
+                        string += buffer[0]
+                    }
+
+                    var serverResponse = JSONObject(string)
+                    control.showUserConfirmation(serverResponse.get("answer").toString())
+
+                    while (userRegisterConfirmation == 0) {
+                        Thread.sleep(500)
+                    }
+
+                    val confirmationJson = JSONObject()
+
+                    confirmationJson.put("device", "pcclient")
+
+                    if (userRegisterConfirmation == -1) {
+                        confirmationJson.put("confirmation", false)
+                    } else {
+                        confirmationJson.put("confirmation", true)
+                    }
+
+                    objectoutputstream.writeObject(confirmationJson.toString())
+                    outputstream.flush()
+                } catch(e :Exception) {
+                    control.showWarning("Registrierung fehlgeschlagen! Bitte versuchen Sie es erneut.")
+                }finally {
+                    if(!registerSocket.isClosed) {
+                        registerSocket.close()
+                    }
                 }
-
-                var serverResponse = JSONObject(string)
-                control.showUserConfirmation(serverResponse.get("answer").toString())
-
-                while (userRegisterConfirmation == 0) {
-                    Thread.sleep(500)
-                }
-
-                val confirmationJson = JSONObject()
-
-                confirmationJson.put("device", "pcclient")
-
-                if (userRegisterConfirmation == -1) {
-                    confirmationJson.put("confirmation", false)
-                } else {
-                    confirmationJson.put("confirmation", true)
-                }
-
-                objectoutputstream.writeObject(confirmationJson.toString())
-                outputstream.flush()
             } catch(e :Exception) {
-                control.showWarning("Registrierung fehlgeschlagen! Bitte versuchen Sie es erneut.")
-            }finally {
-                if(!registerSocket.isClosed) {
-                    registerSocket.close()
-                }
+                control.showWarning("Verbindung zum Server konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
             }
         }
     }
