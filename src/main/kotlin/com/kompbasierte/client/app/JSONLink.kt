@@ -1,11 +1,12 @@
 package com.kompbasierte.client.app
 
+import com.kompbasierte.client.view.MainView
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.ObjectOutputStream
-import java.io.OutputStream
+import java.io.*
+import java.net.InetAddress
+import java.net.ServerSocket
 import java.net.Socket
+import java.util.logging.Logger
 import kotlin.concurrent.thread
 
 
@@ -18,6 +19,10 @@ class JSONLink(private val control: Control, private val port: Int) {
     private lateinit var taskOutputStream: OutputStream
 
     private var userRegisterConfirmation = 0
+
+    companion object {
+        private val LOG = Logger.getLogger(MainView::class.java.name)
+    }
 
     fun setUserRegisterConfirmation(status: Int) {
         userRegisterConfirmation = status
@@ -38,18 +43,109 @@ class JSONLink(private val control: Control, private val port: Int) {
     fun registerDevice(json: JSONObject, port: Int) {
         thread(start = true) {
             try {
-                val registerSocket = Socket(host, port)
+                var registerSocket = Socket(host, port)
                 try{
-                    val outputstream = registerSocket.getOutputStream()
+                    registerSocket.soTimeout = 10000
+                    //val outputstream = registerSocket.getOutputStream()
                     //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
-                    val objectoutputstream = ObjectOutputStream(outputstream)
-                    val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
+                    val objectoutputstream = ObjectOutputStream(registerSocket.getOutputStream())
+
 
                     objectoutputstream.writeObject(json.toString())
-                    outputstream.flush()
 
                     val buffer: CharArray = charArrayOf(' ')
                     var string = ""
+
+                    registerSocket.close()
+
+                    while(string == "") {
+                        LOG.info("Opening Socket")
+                        try {
+                            registerSocket = Socket(host, port)
+                            registerSocket.soTimeout = 5000
+
+                            val objectoutputstream = ObjectOutputStream(registerSocket.getOutputStream())
+
+
+                            var json = JSONObject()
+                            json.put("device", "pcclient")
+                            json.put("instructions", "true")
+
+                            objectoutputstream.flush()
+                            objectoutputstream.writeObject(json.toString())
+
+                            val available = registerSocket.getInputStream().available()
+                            val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
+                            LOG.info("available" + available)
+
+
+                                while (input.read(buffer) == -1) {
+                                    Thread.sleep(500)
+                                }
+
+                                string += buffer[0]
+
+                                while (buffer[0] != '\u0000') {
+                                    input.read(buffer)
+                                    string += buffer[0]
+                                }
+
+                                LOG.info(string)
+
+                                val readyResponse = JSONObject(string)
+
+                                LOG.info(readyResponse.get("answer").toString())
+
+                        }catch(e :Exception) {
+                        } finally {
+                            if(!registerSocket.isClosed){
+                                registerSocket.close()
+                                LOG.info("Closing Socket")
+                            }
+
+                        }
+
+                        Thread.sleep(2000)
+                    }
+
+                    /*val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
+
+                    while (input.read(buffer) == -1) {
+                        Thread.sleep(500)
+                    }
+
+                    string += buffer[0]
+
+                    while (buffer[0] != '\u0000') {
+                        input.read(buffer)
+                        string += buffer[0]
+                    }
+
+                    val readyResponse = JSONObject(string)
+
+                    LOG.info(readyResponse.get("answer").toString())
+
+                    if(!registerSocket.isClosed){
+                        registerSocket.close()
+                    }
+
+                    /*//Waiting for Server Response
+                    while (input.read(buffer) == -1) {
+                        Thread.sleep(500)
+                    }
+
+                    string += buffer[0]
+
+                    while (buffer[0] != '\u0000') {
+                        input.read(buffer)
+                        string += buffer[0]
+                    }
+
+                    val readyResponse = JSONObject(string)
+
+                    LOG.info(readyResponse.get("answer").toString())
+
+                    string = ""
 
                     //Waiting for Server Response
                     while (input.read(buffer) == -1) {
@@ -64,6 +160,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     }
 
                     val serverResponse = JSONObject(string)
+
                     control.showUserConfirmation(serverResponse.get("answer").toString())
 
                     while (userRegisterConfirmation == 0) {
@@ -80,10 +177,11 @@ class JSONLink(private val control: Control, private val port: Int) {
                         confirmationJson.put("confirmation", true)
                     }
 
-                    objectoutputstream.writeObject(confirmationJson.toString())
-                    outputstream.flush()
+                    objectoutputstream.flush()
+                    objectoutputstream.writeObject(confirmationJson.toString())*/
+*/
                 } catch(e :Exception) {
-                    control.showWarning("Registrierung fehlgeschlagen! Bitte versuchen Sie es erneut.")
+                    control.showWarning("Registrierung fehlgeschlagen! Bitte versuchen Sie es erneut." + e.message)
                 }finally {
                     if(!registerSocket.isClosed) {
                         registerSocket.close()

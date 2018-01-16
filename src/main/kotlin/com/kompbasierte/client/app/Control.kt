@@ -21,7 +21,7 @@ class Control constructor(private val mainView: MainView) {
     private lateinit var db: Connection
 
     init {
-
+        LOG.info("Control erstellt")
         try {
             db = openDatabase()
         } catch (e: SQLException) {
@@ -57,6 +57,7 @@ class Control constructor(private val mainView: MainView) {
     fun registerToService(arg: String) {
         val json = JSONObject()
         LOG.info("Schlüssel ist: "+arg)
+        json.put("device","pcclient")
         json.put("password", arg)
         jsonLink.registerDevice(json,41337)
         LOG.info("Registrieren")

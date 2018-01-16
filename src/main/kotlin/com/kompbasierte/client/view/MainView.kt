@@ -16,6 +16,10 @@ class MainView : View("Hello Tornado") {
         private val LOG = Logger.getLogger(MainView::class.java.name)
     }
 
+    init {
+        LOG.info("MainView erstellt")
+    }
+
     //instanciate warning view to display fatal errors
     private val genericWarningView = GenericWarningView()
 
