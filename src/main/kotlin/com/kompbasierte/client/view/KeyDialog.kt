@@ -24,10 +24,12 @@ class KeyDialog(private val master: MainView) : Fragment("Gerät registrieren") 
                             val matched = regex.find(keyText.text)
                             if(matched != null) {
                                 master.transmitKeys(keyText.text)
+                                close()
                             } else {
-//                                TODO("Send warning and retry")
+                                master.showWarning("Schlüssel nicht korrekt. Bitte erneut versuchen.")
+                                keyText.clear()
                             }
-                            close()
+
                         }
                     }
                     button("Cancel") {

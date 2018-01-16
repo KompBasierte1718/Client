@@ -52,6 +52,7 @@ class Control constructor(private val mainView: MainView) {
     private fun connectToService() {
 //        TODO("not implemented")
         //etablish connection to webserver here
+        //jsonLink.initialiseConnection()
     }
 
     private fun registerToService() {
@@ -761,6 +762,10 @@ class Control constructor(private val mainView: MainView) {
 
     fun fatalClose(text: String) {
         mainView.showWarning(text, true)
+    }
+
+    fun showWarning(text: String) {
+        mainView.showWarning(text)
     }
 
     fun executeTask(json :JSONObject) {

@@ -19,12 +19,6 @@ class JSONLink(private val control: Control, private val port: Int) {
 
     private var userRegisterConfirmation = 0
 
-
-    init {
-        //initialiseConnection()
-        //taskHandler()
-    }
-
     fun setUserRegisterConfirmation(status: Int) {
         userRegisterConfirmation = status
     }
@@ -34,6 +28,7 @@ class JSONLink(private val control: Control, private val port: Int) {
             taskSocket = Socket(host, port)
             taskInput = BufferedReader(InputStreamReader(taskSocket.getInputStream()))
             taskOutputStream = taskSocket.getOutputStream()
+            taskHandler()
         } catch (e: Exception) {
             control.fatalClose("Konnte keine Verbindung zum Server herstellen!")
             return
@@ -42,49 +37,58 @@ class JSONLink(private val control: Control, private val port: Int) {
 
     fun registerDevice(json: JSONObject, port: Int) {
         thread(start = true) {
-            val registerSocket = Socket(host, port)
-            val outputstream = registerSocket.getOutputStream()
-            //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
-            val objectoutputstream = ObjectOutputStream(outputstream)
-            val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
+            lateinit var registerSocket: Socket
+            try {
+                registerSocket = Socket(host, port)
+                val outputstream = registerSocket.getOutputStream()
+                //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
+                val objectoutputstream = ObjectOutputStream(outputstream)
+                val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
 
-            objectoutputstream.writeObject(json.toString())
-            outputstream.flush()
+                objectoutputstream.writeObject(json.toString())
+                outputstream.flush()
 
-            var buffer :CharArray = charArrayOf(' ')
-            var string = ""
+                var buffer: CharArray = charArrayOf(' ')
+                var string = ""
 
-            //Waiting for Server Response
-            while (input.read(buffer) == -1){
-                Thread.sleep(500)
-            }
+                //Waiting for Server Response
+                while (input.read(buffer) == -1) {
+                    Thread.sleep(500)
+                }
 
-            string += buffer[0]
-
-            while(buffer[0] != '\u0000'){
-                input.read(buffer)
                 string += buffer[0]
+
+                while (buffer[0] != '\u0000') {
+                    input.read(buffer)
+                    string += buffer[0]
+                }
+
+                var serverResponse = JSONObject(string)
+                control.showUserConfirmation(serverResponse.get("answer").toString())
+
+                while (userRegisterConfirmation == 0) {
+                    Thread.sleep(500)
+                }
+
+                val confirmationJson = JSONObject()
+
+                confirmationJson.put("device", "pcclient")
+
+                if (userRegisterConfirmation == -1) {
+                    confirmationJson.put("confirmation", false)
+                } else {
+                    confirmationJson.put("confirmation", true)
+                }
+
+                objectoutputstream.writeObject(confirmationJson.toString())
+                outputstream.flush()
+            } catch(e :Exception) {
+                control.showWarning("Registrierung fehlgeschlagen! Bitte versuchen Sie es erneut.")
+            }finally {
+                if(!registerSocket.isClosed) {
+                    registerSocket.close()
+                }
             }
-
-            var serverResponse = JSONObject(string)
-            control.showUserConfirmation(serverResponse.get("answer").toString())
-
-            while (userRegisterConfirmation == 0) {
-                Thread.sleep(500)
-            }
-
-            val confirmationJson = JSONObject()
-
-            if(userRegisterConfirmation == -1) {
-                confirmationJson.put("confirmation", false)
-            } else {
-                confirmationJson.put("confirmation", true)
-            }
-
-            objectoutputstream.writeObject(confirmationJson.toString())
-            outputstream.flush()
-
-            registerSocket.close()
         }
     }
 
@@ -94,23 +98,32 @@ class JSONLink(private val control: Control, private val port: Int) {
                 //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
                 val objectoutputstream = ObjectOutputStream(taskOutputStream)
                 while (!taskSocket.isClosed) {
-                    while (taskInput.read() == -1) {
-                        //TODO("Read incoming JSON File")
+                    var buffer :CharArray = charArrayOf(' ')
+                    var string = ""
+
+                    //Waiting for Server Response
+                    while (taskInput.read(buffer) == -1){
+                        Thread.sleep(500)
                     }
 
-                    //TODO("Execute task and return success/failure")
+                    string += buffer[0]
 
-                    val json = JSONObject()
+                    while(buffer[0] != '\u0000'){
+                        taskInput.read(buffer)
+                        string += buffer[0]
+                    }
 
-                    json.put("isprogram", true)
-                    json.put("program", "VLC")
-                    json.put("task","starten")
+                    var serverResponse = JSONObject(string)
 
-                    control.executeTask(json)
+                    control.executeTask(serverResponse)
 
-                    //TODO("Add success/failure to JSON")
+                    var confirmationJson = JSONObject()
 
-                    objectoutputstream.writeObject(json)
+                    confirmationJson.put("device", "pcclient")
+                    //TODO("return success/failure")
+                    confirmationJson.put("taskExecuted",true)
+
+                    objectoutputstream.writeObject(confirmationJson)
                     taskOutputStream.flush()
                 }
             } catch (e: Exception) {
@@ -124,6 +137,8 @@ class JSONLink(private val control: Control, private val port: Int) {
     }
 
     fun onClose() {
-        taskSocket.close()
+        if(!taskSocket.isClosed) {
+            taskSocket.close()
+        }
     }
 }
