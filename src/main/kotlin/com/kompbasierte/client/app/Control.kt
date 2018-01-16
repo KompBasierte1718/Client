@@ -394,7 +394,7 @@ class Control constructor(private val mainView: MainView) {
             return null
         }
         val stmt = db.createStatement()
-        val sql = "SELECT * FROM Befehl WHERE ID = $name;"
+        val sql = "SELECT * FROM Befehl WHERE ID = '$name';"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
