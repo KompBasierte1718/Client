@@ -37,9 +37,8 @@ class JSONLink(private val control: Control, private val port: Int) {
 
     fun registerDevice(json: JSONObject, port: Int) {
         thread(start = true) {
-            lateinit var registerSocket: Socket
             try {
-                registerSocket = Socket(host, port)
+                val registerSocket = Socket(host, port)
                 try{
                     val outputstream = registerSocket.getOutputStream()
                     //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
@@ -49,7 +48,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     objectoutputstream.writeObject(json.toString())
                     outputstream.flush()
 
-                    var buffer: CharArray = charArrayOf(' ')
+                    val buffer: CharArray = charArrayOf(' ')
                     var string = ""
 
                     //Waiting for Server Response
@@ -64,7 +63,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                         string += buffer[0]
                     }
 
-                    var serverResponse = JSONObject(string)
+                    val serverResponse = JSONObject(string)
                     control.showUserConfirmation(serverResponse.get("answer").toString())
 
                     while (userRegisterConfirmation == 0) {
@@ -102,7 +101,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
                 val objectoutputstream = ObjectOutputStream(taskOutputStream)
                 while (!taskSocket.isClosed) {
-                    var buffer :CharArray = charArrayOf(' ')
+                    val buffer :CharArray = charArrayOf(' ')
                     var string = ""
 
                     //Waiting for Server Response
@@ -117,11 +116,11 @@ class JSONLink(private val control: Control, private val port: Int) {
                         string += buffer[0]
                     }
 
-                    var serverResponse = JSONObject(string)
+                    val serverResponse = JSONObject(string)
 
                     control.executeTask(serverResponse)
 
-                    var confirmationJson = JSONObject()
+                    val confirmationJson = JSONObject()
 
                     confirmationJson.put("device", "pcclient")
                     //TODO("return success/failure")

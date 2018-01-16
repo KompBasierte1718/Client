@@ -163,7 +163,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun transmitKeys(arg :String){
-        controller.registerDevice(arg)
+        controller.registerToService(arg)
     }
 
     fun openKeyConfirmationDialog(device :String){
