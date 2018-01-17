@@ -52,6 +52,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
 
                     objectoutputstream.writeObject(json.toString())
+                    objectoutputstream.flush()
 
                     val buffer: CharArray = charArrayOf(' ')
                     var string = ""
@@ -62,7 +63,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                         LOG.info("Opening Socket")
                         try {
                             registerSocket = Socket(host, port)
-                            registerSocket.soTimeout = 5000
+                            registerSocket.soTimeout = 10000
 
                             val objectoutputstream = ObjectOutputStream(registerSocket.getOutputStream())
 
@@ -71,42 +72,52 @@ class JSONLink(private val control: Control, private val port: Int) {
                             json.put("device", "pcclient")
                             json.put("instructions", "true")
 
-                            objectoutputstream.flush()
                             objectoutputstream.writeObject(json.toString())
+                            objectoutputstream.flush()
 
-                            val available = registerSocket.getInputStream().available()
                             val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
-                            LOG.info("available" + available)
 
+                            var count = 0
 
-                                while (input.read(buffer) == -1) {
-                                    Thread.sleep(500)
-                                }
+                            while (input.read(buffer) == -1 && count <= 5) {
+                                Thread.sleep(500)
+                                count++
+                            }
+
+                            if(count <= 5) {
+                                LOG.info("Data available")
 
                                 string += buffer[0]
 
-                                while (buffer[0] != '\u0000') {
+                                LOG.info(string)
+                                while (buffer[0] != '}') {
                                     input.read(buffer)
                                     string += buffer[0]
                                 }
 
-                                LOG.info(string)
+                                LOG.info("message: " + string)
 
                                 val readyResponse = JSONObject(string)
 
-                                LOG.info(readyResponse.get("answer").toString())
-
+                                if(readyResponse.get("answer").toString() == "NO COMMANDS")
+                                {
+                                    string = ""
+                                } else {
+                                    control.executeTask(readyResponse)
+                                }
+                            }
                         }catch(e :Exception) {
                         } finally {
                             if(!registerSocket.isClosed){
                                 registerSocket.close()
                                 LOG.info("Closing Socket")
                             }
-
                         }
 
-                        Thread.sleep(2000)
+                        Thread.sleep(5000)
                     }
+
+
 
                     /*val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
 

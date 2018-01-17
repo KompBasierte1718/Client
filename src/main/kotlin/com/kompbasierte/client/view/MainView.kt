@@ -92,9 +92,7 @@ class MainView : View("Hello Tornado") {
      * @param text The text to show in the Warning
      */
     fun showWarning(text: String) {
-        LOG.info("Show Warning: "+text)
-        genericWarningView.setWarningText(text)
-        runAsync{}ui {genericWarningView.openModal()}
+        showWarning(text, false)
     }
 
     fun showWarning(text: String, close: Boolean) {
