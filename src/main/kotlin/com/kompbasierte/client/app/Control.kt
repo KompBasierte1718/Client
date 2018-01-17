@@ -776,9 +776,11 @@ class Control constructor(private val mainView: MainView) {
         mainView.showWarning(text, true)
     }
 
-    fun executeTask(json :JSONObject) {
+    fun executeTask(json: JSONObject) {
         val progName: String = json.get("program").toString()
+        //val commandName: String = json.get("task").toString()
         val app = getApplication(progName)
+        //val command = getCommand(commandName)
         val pfad: String
         if(app != null) {
             if (app.path32 != null) {

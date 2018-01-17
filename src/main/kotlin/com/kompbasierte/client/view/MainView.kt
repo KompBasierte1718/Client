@@ -10,6 +10,9 @@ import javafx.event.EventHandler
 import org.json.JSONObject
 import tornadofx.*
 import java.util.logging.Logger
+import java.awt.Robot
+import java.awt.event.KeyEvent
+import java.awt.event.InputEvent
 
 class MainView : View("Hello Tornado") {
 
@@ -41,8 +44,21 @@ class MainView : View("Hello Tornado") {
                 item("Speichern") { isDisable = true }
                 item("Test Taskexec").onAction = EventHandler<ActionEvent> {
                     val json = JSONObject()
-                    json.put("program", "6")
+                    json.put("program", "GoogleChrome")
                     controller.executeTask(json)
+                }
+                item("Test Robot").onAction = EventHandler<ActionEvent> {
+                    val r = Robot()
+                    r.mouseMove(1000, 50)
+                    r.delay(100)
+                    r.mousePress(InputEvent.BUTTON1_MASK)
+                    r.delay(200)
+                    r.mouseRelease(InputEvent.BUTTON1_MASK)
+                    r.delay(200)
+                    r.keyPress(KeyEvent.VK_CONTROL)
+                    r.keyPress(KeyEvent.VK_T)
+                    r.keyRelease(KeyEvent.VK_CONTROL)
+                    r.keyRelease(KeyEvent.VK_T)
                 }
                 item("Schließen").onAction = EventHandler<ActionEvent> {
                     LOG.info("Close Client")

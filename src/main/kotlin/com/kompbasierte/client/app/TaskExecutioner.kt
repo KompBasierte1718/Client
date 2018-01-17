@@ -10,7 +10,7 @@ class TaskExecutioner constructor(private val mainView: MainView){
         try {
             Runtime.getRuntime().exec(pfad)
         } catch (e: IOException) {
-            mainView.showWarning("Bitte gültigen Pfad angeben")
+            mainView.showWarning("Bitte gültigen Pfad angeben.")
         }
     }
 }
