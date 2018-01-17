@@ -24,7 +24,7 @@ class Control constructor(private val mainView: MainView) {
     private lateinit var db: Connection
 
     init {
-
+        LOG.info("Control erstellt")
         try {
             db = openDatabase()
         } catch (e: SQLException) {
@@ -53,13 +53,16 @@ class Control constructor(private val mainView: MainView) {
     }
 
     private fun connectToService() {
-//        TODO("not implemented")
         //etablish connection to webserver here
+        //jsonLink.initialiseConnection()
     }
 
-    private fun registerToService() {
-        TODO("not implemented")
-        //register Client here
+    fun registerToService(arg: String) {
+        val json = JSONObject()
+        LOG.info("Schlüssel ist: " + arg)
+        json.put("device", "pcclient")
+        json.put("password", arg)
+        jsonLink.registerDevice(json, 41337)
         LOG.info("Registrieren")
     }
 
@@ -236,7 +239,7 @@ class Control constructor(private val mainView: MainView) {
      */
     fun getApplication(id: Int): Application? {
         val app: Application
-        if(id < 1) {
+        if (id < 1) {
             return null
         }
         val stmt = db.createStatement()
@@ -267,7 +270,7 @@ class Control constructor(private val mainView: MainView) {
      */
     fun getApplication(name: String): Application? {
         val app: Application
-        if(name == "") {
+        if (name == "") {
             return null
         }
         val stmt = db.createStatement()
@@ -359,7 +362,7 @@ class Control constructor(private val mainView: MainView) {
      */
     fun getCommand(id: Int): Command? {
         val command: Command
-        if(id < 1) {
+        if (id < 1) {
             return null
         }
         val stmt = db.createStatement()
@@ -369,7 +372,7 @@ class Control constructor(private val mainView: MainView) {
             while (result.isBeforeFirst)
                 result.next()
             val active: Boolean = result.getInt("Aktiv") == 1
-              command = Command(result.getInt("ID"), result.getString("Name"),
+            command = Command(result.getInt("ID"), result.getString("Name"),
                     result.getString("VACallout"), result.getString("shortcut"), active)
             result.close()
         } catch (e: SQLException) {
@@ -390,7 +393,7 @@ class Control constructor(private val mainView: MainView) {
      */
     fun getCommand(name: String): Command? {
         val command: Command
-        if(name == "") {
+        if (name == "") {
             return null
         }
         val stmt = db.createStatement()
@@ -460,6 +463,7 @@ class Control constructor(private val mainView: MainView) {
         println(sql)
         executeUpdate(sql)
     }
+
     /**
      * Saves a specific application into the Database
      *
@@ -470,11 +474,11 @@ class Control constructor(private val mainView: MainView) {
         var id = 0
         //vereinfacht das Updateverhalten aus der View heraus
         //ID!=0 bedeutet die App existiert schon
-        if (application.id!=0){
-            val oldApplication=getApplication(application.id)
+        if (application.id != 0) {
+            val oldApplication = getApplication(application.id)
             if (oldApplication != null) {
                 updateApplication(oldApplication, application)
-            }else{
+            } else {
                 mainView.showWarning("Fehler beim Update")
             }
         }
@@ -541,26 +545,26 @@ class Control constructor(private val mainView: MainView) {
      * @see Command
      */
     fun updateCommand(oldCommand: Command, newCommand: Command) {
-        if(oldCommand.id == 0 || newCommand.id == 0 || oldCommand.id != newCommand.id) {
+        if (oldCommand.id == 0 || newCommand.id == 0 || oldCommand.id != newCommand.id) {
             return
         }
-        var sql : String
-        if(oldCommand.name != newCommand.name) {
+        var sql: String
+        if (oldCommand.name != newCommand.name) {
             sql = "UPDATE Befehl SET Name = '${newCommand.name}' WHERE ID = ${newCommand.id};"
             println(sql)
             executeUpdate(sql)
         }
-        if(oldCommand.vACallout != newCommand.vACallout) {
+        if (oldCommand.vACallout != newCommand.vACallout) {
             sql = "UPDATE Befehl SET VACallout = '${newCommand.vACallout}' WHERE ID = ${newCommand.id};"
             println(sql)
             executeUpdate(sql)
         }
-        if(oldCommand.shortcut != newCommand.shortcut) {
+        if (oldCommand.shortcut != newCommand.shortcut) {
             sql = "UPDATE Befehl SET shortcut = '${newCommand.shortcut}' WHERE ID = ${newCommand.id};"
             println(sql)
             executeUpdate(sql)
         }
-        if(oldCommand.active != newCommand.active) {
+        if (oldCommand.active != newCommand.active) {
             val active = boolToInt(newCommand.active)
             sql = "UPDATE Befehl SET Aktiv = $active WHERE ID = ${newCommand.id};"
             println(sql)
@@ -576,11 +580,11 @@ class Control constructor(private val mainView: MainView) {
      * @see Application
      */
     fun updateApplication(oldApplication: Application, newApplication: Application) {
-        if(oldApplication.id == 0 || newApplication.id == 0 || oldApplication.id != newApplication.id) {
+        if (oldApplication.id == 0 || newApplication.id == 0 || oldApplication.id != newApplication.id) {
             return
         }
-        var sql : String
-        if(oldApplication.categoryID != newApplication.categoryID) {
+        var sql: String
+        if (oldApplication.categoryID != newApplication.categoryID) {
             val stmt = db.createStatement()
             sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
                     "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${oldApplication.categoryID};"
@@ -624,22 +628,22 @@ class Control constructor(private val mainView: MainView) {
                 stmt.close()
             }
         }
-        if(oldApplication.name != newApplication.name) {
+        if (oldApplication.name != newApplication.name) {
             sql = "UPDATE Programm SET Name = '${newApplication.name}' WHERE ID = ${newApplication.id};"
             println(sql)
             executeUpdate(sql)
         }
-        if(oldApplication.path32 != newApplication.path32) {
+        if (oldApplication.path32 != newApplication.path32) {
             sql = "UPDATE Programm SET Pfad_32 = '${newApplication.path32}' WHERE ID = ${newApplication.id};"
             println(sql)
             executeUpdate(sql)
         }
-        if(oldApplication.path64 != newApplication.path64) {
+        if (oldApplication.path64 != newApplication.path64) {
             sql = "UPDATE Programm SET Pfad_64 = '${newApplication.path64}' WHERE ID = ${newApplication.id};"
             println(sql)
             executeUpdate(sql)
         }
-        if(oldApplication.active != newApplication.active) {
+        if (oldApplication.active != newApplication.active) {
             val active = boolToInt(newApplication.active)
             sql = "UPDATE Programm SET Aktiv = '$active' WHERE ID = ${newApplication.id};"
             println(sql)
@@ -710,11 +714,11 @@ class Control constructor(private val mainView: MainView) {
         executeUpdate(sql)
     }
 
-    private fun boolToInt(b: Boolean) : Int {
+    private fun boolToInt(b: Boolean): Int {
         if (b) {
-            return  1
+            return 1
         }
-        return  0
+        return 0
     }
 
     private fun execute(sql: String) {
@@ -757,19 +761,12 @@ class Control constructor(private val mainView: MainView) {
         jsonLink.onClose()
     }
 
-    fun registerDevice(arg :String) {
-        val json = JSONObject()
-        LOG.info("Schlüssel ist: "+arg)
-        json.put("Passwort", arg)
-        jsonLink.registerDevice(json,41337)
-    }
-
-    fun userRegisterConfirmation(status :Int) {
+    fun userRegisterConfirmation(status: Int) {
         jsonLink.setUserRegisterConfirmation(status)
     }
 
-    fun showUserConfirmation(){
-        mainView.openKeyConfirmationDialog()
+    fun showUserConfirmation(device: String) {
+        mainView.openKeyConfirmationDialog(device)
     }
 
     fun fatalClose(text: String) {
@@ -782,7 +779,7 @@ class Control constructor(private val mainView: MainView) {
         val app = getApplication(progName)
         //val command = getCommand(commandName)
         val pfad: String
-        if(app != null) {
+        if (app != null) {
             if (app.path32 != null) {
                 pfad = app.path32
             } else {
@@ -792,6 +789,12 @@ class Control constructor(private val mainView: MainView) {
             return
         }
         taskExec.executeTask(pfad)
+
+
+    }
+
+    fun showWarning(text: String) {
+        mainView.showWarning(text)
     }
 }
 

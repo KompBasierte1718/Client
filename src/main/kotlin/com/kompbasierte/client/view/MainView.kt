@@ -20,6 +20,10 @@ class MainView : View("Hello Tornado") {
         private val LOG = Logger.getLogger(MainView::class.java.name)
     }
 
+    init {
+        LOG.info("MainView erstellt")
+    }
+
     //instanciate warning view to display fatal errors
     private val genericWarningView = GenericWarningView()
 
@@ -111,9 +115,7 @@ class MainView : View("Hello Tornado") {
      * @param text The text to show in the Warning
      */
     fun showWarning(text: String) {
-        LOG.info("Show Warning: "+text)
-        genericWarningView.setWarningText(text)
-        runAsync{}ui {genericWarningView.openModal()}
+        showWarning(text, false)
     }
 
     fun showWarning(text: String, close: Boolean) {
@@ -193,11 +195,12 @@ class MainView : View("Hello Tornado") {
     }
 
     fun transmitKeys(arg :String){
-        controller.registerDevice(arg)
+        controller.registerToService(arg)
     }
 
-    fun openKeyConfirmationDialog(){
-        openInternalWindow(keyConfirmationDialog)
+    fun openKeyConfirmationDialog(device :String){
+        keyConfirmationDialog.setDeviceType(device)
+        runAsync {  }ui { openInternalWindow(keyConfirmationDialog)}
     }
 
     fun userRegisterConfirmation(status :Int){
