@@ -31,7 +31,7 @@ dependencies {
     compile group: 'org.json', name: 'json', version: '20171018'
     testCompile 'junit:junit:4.12'
     testCompile "org.jetbrains.kotlin:kotlin-test"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 mainClassName = 'com.kompbasierte.client.app.Launcher'
