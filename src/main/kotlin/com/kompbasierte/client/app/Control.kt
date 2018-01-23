@@ -16,7 +16,7 @@ import kotlin.collections.ArrayList
 
 class Control constructor(private val mainView: MainView) {
     private val jsonLink = JSONLink(this, 41337)
-    private val taskExec = TaskExecutioner(mainView)
+    private val taskExec = TaskExecutioner(this)
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
