@@ -48,21 +48,15 @@ class MainView : View("Hello Tornado") {
                 item("Speichern") { isDisable = true }
                 item("Test Taskexec").onAction = EventHandler<ActionEvent> {
                     val json = JSONObject()
-                    json.put("program", "GoogleChrome")
+                    json.put("program", "Google Chrome")
+                    json.put("task", "starten")
                     controller.executeTask(json)
                 }
                 item("Test Robot").onAction = EventHandler<ActionEvent> {
-                    val r = Robot()
-                    r.mouseMove(1000, 50)
-                    r.delay(100)
-                    r.mousePress(InputEvent.BUTTON1_MASK)
-                    r.delay(200)
-                    r.mouseRelease(InputEvent.BUTTON1_MASK)
-                    r.delay(200)
-                    r.keyPress(KeyEvent.VK_CONTROL)
-                    r.keyPress(KeyEvent.VK_T)
-                    r.keyRelease(KeyEvent.VK_CONTROL)
-                    r.keyRelease(KeyEvent.VK_T)
+                    val json = JSONObject()
+                    json.put("program", "Google Chrome")
+                    json.put("task", "NeuerTab")
+                    controller.executeTask(json)
                 }
                 item("Schließen").onAction = EventHandler<ActionEvent> {
                     LOG.info("Close Client")
