@@ -64,6 +64,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                 val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
 
+                objectoutputstream.flush()
                 objectoutputstream.writeObject(confirmationJson.toString())
                 objectoutputstream.flush()
             } catch (e: ConnectException) {
@@ -101,6 +102,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 request.put("getDevice", "true")
 
                 LOG.info(request.toString())
+                objectoutputstream.flush()
                 objectoutputstream.writeObject(request.toString())
                 objectoutputstream.flush()
 
@@ -120,7 +122,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                 val serverResponse = JSONObject(string)
                 if (serverResponse.has("answer")) {
-                    if (serverResponse.get("answer").toString() != "NO COMMANDS") {
+                    if (serverResponse.get("answer").toString() != "WAITING FOR VA") {
                         waiting = false
                         control.showUserConfirmation(serverResponse.get("answer").toString())
                     }
@@ -156,6 +158,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
 
                 LOG.info(json.toString())
+                objectoutputstream.flush()
                 objectoutputstream.writeObject(json.toString())
                 objectoutputstream.flush()
 
@@ -222,6 +225,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                         json.put("device", "pcclient")
                         json.put("instructions", "true")
 
+                        objectoutputstream.flush()
                         objectoutputstream.writeObject(json.toString())
                         objectoutputstream.flush()
 
