@@ -779,8 +779,10 @@ class Control constructor(private val mainView: MainView) {
         val commandName: String = json.get("task").toString()
         val app = getApplication(progName)
         val pfad: String
-        val commandList = getCommandsForApplications(app!!)
+        val commandList: ArrayList<Command>
+
         if (app != null) {
+        commandList = getCommandsForApplications(app)
             if (app.path32 != null) {
                 pfad = app.path32
             } else {

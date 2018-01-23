@@ -2,6 +2,7 @@ package com.kompbasierte.client.app
 
 import java.io.IOException
 import com.kompbasierte.client.view.MainView
+import javafx.scene.input.KeyCode
 import java.awt.Robot
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
