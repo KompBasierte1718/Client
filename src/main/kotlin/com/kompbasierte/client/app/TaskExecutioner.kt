@@ -1,17 +1,16 @@
 package com.kompbasierte.client.app
 
 import java.io.IOException
-import com.kompbasierte.client.view.MainView
 import java.awt.Robot
 import java.awt.event.KeyEvent.*
 
-class TaskExecutioner constructor(private val coontrol: Control){
+class TaskExecutioner constructor(private val control: Control){
 
     fun executeTask(pfad: String) {
         try {
             Runtime.getRuntime().exec(pfad)
         } catch (e: IOException) {
-            coontrol.showWarning("Bitte gültigen Pfad angeben.")
+            control.showWarning("Bitte gültigen Pfad angeben.")
         }
     }
 
@@ -25,7 +24,7 @@ class TaskExecutioner constructor(private val coontrol: Control){
             "Alt" -> key1 = VK_ALT
             else -> {
                 key1 = 0
-                coontrol.showWarning("Bitte gültigen Shortcut angeben")
+                control.showWarning("Bitte gültigen Shortcut angeben")
             }
         }
         when (sc[1]) {
@@ -33,7 +32,7 @@ class TaskExecutioner constructor(private val coontrol: Control){
             "F" -> key2 = VK_F
             else -> {
                 key2 = 0
-                coontrol.showWarning("Bitte gültigen Shortcut angeben")
+                control.showWarning("Bitte gültigen Shortcut angeben")
             }
         }
         r.keyPress( VK_ALT )
@@ -45,5 +44,10 @@ class TaskExecutioner constructor(private val coontrol: Control){
         r.keyPress(key2)
         r.keyRelease(key1)
         r.keyRelease(key2)
+        r.delay(500)
+        r.keyPress( VK_ALT )
+        r.keyPress( VK_TAB )
+        r.keyRelease( VK_ALT )
+        r.keyRelease( VK_TAB )
     }
 }

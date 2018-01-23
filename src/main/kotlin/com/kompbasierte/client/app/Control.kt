@@ -783,7 +783,7 @@ class Control constructor(private val mainView: MainView) {
 
         if (app != null) {
         commandList = getCommandsForApplications(app)
-            if (app.path32 != null) {
+            if (app.path32 != "") {
                 pfad = app.path32
             } else {
                 pfad = app.path64
