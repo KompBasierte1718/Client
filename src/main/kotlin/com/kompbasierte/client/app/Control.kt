@@ -15,17 +15,23 @@ import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
 class Control constructor(private val mainView: MainView) {
-    private val jsonLink = JSONLink(this, 41337)
-    private val taskExec = TaskExecutioner(this)
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
     }
 
+    private val jsonLink : JSONLink
+    private val taskExec : TaskExecutioner
+
     private lateinit var db: Connection
 
     init {
         LOG.info("Control erstellt")
+        jsonLink = JSONLink(this,41337)
+        LOG.info("JSONLink erstellt")
+        taskExec = TaskExecutioner(this)
+        LOG.info("TaskExec erstellt")
+
         try {
             db = openDatabase()
         } catch (e: SQLException) {
@@ -38,6 +44,7 @@ class Control constructor(private val mainView: MainView) {
             createDatabase()
             insertData()
         }
+        LOG.info("Datenbank verfügbar")
         connectToService()
     }
 
