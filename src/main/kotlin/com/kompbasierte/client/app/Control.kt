@@ -62,7 +62,7 @@ class Control constructor(private val mainView: MainView) {
 
     private fun connectToService() {
         //etablish connection to webserver here
-        jsonLink.taskHandler()
+        //jsonLink.taskHandler()
     }
 
     fun registerToService(arg: String) {
@@ -70,7 +70,7 @@ class Control constructor(private val mainView: MainView) {
         LOG.info("Schlüssel ist: " + arg)
         json.put("device", "pcclient")
         json.put("password", arg)
-        jsonLink.registerDevice(json, 41337)
+        jsonLink.registerDevice(json, 51337)
         LOG.info("Registrieren")
     }
 

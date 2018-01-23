@@ -32,14 +32,11 @@ class JSONLink(private val control: Control, private val port: Int) {
 
             var awaitingResponse = true
 
-            while (awaitingResponse) {
-                awaitingResponse = confirmInstruction(port)
-            }
-
-            awaitingResponse = true
+            Thread.sleep(5000)
 
             while (awaitingResponse) {
                 awaitingResponse = getDeviceType(port)
+                Thread.sleep(4000)
             }
 
             while (userRegisterConfirmation == 0) {
@@ -103,10 +100,18 @@ class JSONLink(private val control: Control, private val port: Int) {
                 request.put("device", "pcclient")
                 request.put("getDevice", "true")
 
+                LOG.info(request.toString())
                 objectoutputstream.writeObject(request.toString())
                 objectoutputstream.flush()
 
                 val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+
+                //Waiting for Server Response
+                while (input.read(buffer) == -1) {
+                    Thread.sleep(500)
+                }
+
+                string += buffer[0]
 
                 while (buffer[0] != '}') {
                     input.read(buffer)
@@ -114,10 +119,13 @@ class JSONLink(private val control: Control, private val port: Int) {
                 }
 
                 val serverResponse = JSONObject(string)
-
-                if (serverResponse.get("answer").toString() != "NO COMMANDS") {
-                    waiting = false
-                    control.showUserConfirmation(serverResponse.get("answer").toString())
+                if (serverResponse.has("answer")) {
+                    if (serverResponse.get("answer").toString() != "NO COMMANDS") {
+                        waiting = false
+                        control.showUserConfirmation(serverResponse.get("answer").toString())
+                    }
+                } else {
+                    LOG.info(string)
                 }
             } catch (e: ConnectException) {
                 control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
@@ -138,65 +146,41 @@ class JSONLink(private val control: Control, private val port: Int) {
         return waiting
     }
 
-    private fun confirmInstruction(port: Int): Boolean {
-        var waiting = true
+    private fun sendPassword(json: JSONObject) {
         val buffer: CharArray = charArrayOf(' ')
         var string = ""
-        LOG.info("Opening Socket")
         try {
             val socket = Socket(host, port)
             try {
                 socket.soTimeout = 10000
-
                 val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
 
-                val request = JSONObject()
-                request.put("device", "pcclient")
-                request.put("instructions", "true")
-
-                objectoutputstream.writeObject(request.toString())
+                LOG.info(json.toString())
+                objectoutputstream.writeObject(json.toString())
                 objectoutputstream.flush()
 
                 val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+
+                //Waiting for Server Response
+                while (input.read(buffer) == -1) {
+                    Thread.sleep(500)
+                }
+
+                string += buffer[0]
 
                 while (buffer[0] != '}') {
                     input.read(buffer)
                     string += buffer[0]
                 }
 
-                val readyResponse = JSONObject(string)
-
-                if (readyResponse.get("answer").toString() != "NO COMMANDS") {
-                    waiting = false
+                val serverResponse = JSONObject(string)
+                if (serverResponse.has("answer")) {
+                    if (serverResponse.get("answer").toString() != "WAITING FOR VA") {
+                        control.showUserConfirmation(serverResponse.get("answer").toString())
+                    }
+                } else {
+                    LOG.info(string)
                 }
-            } catch (e: ConnectException) {
-                control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
-            } catch (e: UnknownHostException) {
-                control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
-            } catch (e: IOException) {
-                control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
-            } finally {
-                if (!socket.isClosed) {
-                    socket.close()
-                }
-            }
-        } catch (e: ConnectException) {
-            control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
-        } catch (e: UnknownHostException) {
-            control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
-        }
-        return waiting
-    }
-
-    private fun sendPassword(json: JSONObject) {
-        try {
-            val socket = Socket(host, port)
-            try {
-                socket.soTimeout = 10000
-                val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
-
-                objectoutputstream.writeObject(json.toString())
-                objectoutputstream.flush()
 
                 socket.close()
             } catch (e: ConnectException) {
@@ -242,6 +226,13 @@ class JSONLink(private val control: Control, private val port: Int) {
                         objectoutputstream.flush()
 
                         val input = BufferedReader(InputStreamReader(taskSocket.getInputStream()))
+
+                        //Waiting for Server Response
+                        while (input.read(buffer) == -1) {
+                            Thread.sleep(500)
+                        }
+
+                        string += buffer[0]
 
                         while (buffer[0] != '}') {
                             input.read(buffer)
