@@ -14,7 +14,7 @@ import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
 class Control constructor(private val mainView: MainView) {
-    private val jsonLink = JSONLink(this, 51337)
+    private val jsonLink = JSONLink(this, 41337)
     private val taskExec = TaskExecutioner(mainView)
 
     companion object {
@@ -54,7 +54,7 @@ class Control constructor(private val mainView: MainView) {
 
     private fun connectToService() {
         //etablish connection to webserver here
-        //jsonLink.initialiseConnection()
+        jsonLink.taskHandler()
     }
 
     fun registerToService(arg: String) {

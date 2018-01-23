@@ -3,20 +3,17 @@ package com.kompbasierte.client.app
 import com.kompbasierte.client.view.MainView
 import org.json.JSONObject
 import java.io.*
-import java.net.InetAddress
-import java.net.ServerSocket
+import java.net.ConnectException
 import java.net.Socket
+import java.net.UnknownHostException
 import java.util.logging.Logger
 import kotlin.concurrent.thread
-
 
 
 class JSONLink(private val control: Control, private val port: Int) {
 
     private var host = "ec2-54-93-34-8.eu-central-1.compute.amazonaws.com"
     private lateinit var taskSocket: Socket
-    private lateinit var taskInput: BufferedReader
-    private lateinit var taskOutputStream: OutputStream
 
     private var userRegisterConfirmation = 0
 
@@ -29,229 +26,264 @@ class JSONLink(private val control: Control, private val port: Int) {
         userRegisterConfirmation = status
     }
 
-    fun initialiseConnection() {
-        try {
-            taskSocket = Socket(host, port)
-            taskInput = BufferedReader(InputStreamReader(taskSocket.getInputStream()))
-            taskOutputStream = taskSocket.getOutputStream()
-            taskHandler()
-        } catch (e: Exception) {
-            control.fatalClose("Konnte keine Verbindung zum Server herstellen!")
-            return
-        }
-    }
-
     fun registerDevice(json: JSONObject, port: Int) {
         thread(start = true) {
-            try {
-                var registerSocket = Socket(host, port)
-                try{
-                    registerSocket.soTimeout = 10000
-                    //val outputstream = registerSocket.getOutputStream()
-                    //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
-                    val objectoutputstream = ObjectOutputStream(registerSocket.getOutputStream())
+            sendPassword(json)
 
+            var awaitingResponse = true
 
-                    objectoutputstream.writeObject(json.toString())
-                    objectoutputstream.flush()
-
-                    val buffer: CharArray = charArrayOf(' ')
-                    var string = ""
-
-                    registerSocket.close()
-
-                    while(string == "") {
-                        LOG.info("Opening Socket")
-                        try {
-                            registerSocket = Socket(host, port)
-                            registerSocket.soTimeout = 10000
-
-                            val objectoutputstream = ObjectOutputStream(registerSocket.getOutputStream())
-
-
-                            var json = JSONObject()
-                            json.put("device", "pcclient")
-                            json.put("instructions", "true")
-
-                            objectoutputstream.writeObject(json.toString())
-                            objectoutputstream.flush()
-
-                            val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
-
-                            var count = 0
-
-                            while (input.read(buffer) == -1 && count <= 5) {
-                                Thread.sleep(500)
-                                count++
-                            }
-
-                            if(count <= 5) {
-                                LOG.info("Data available")
-
-                                string += buffer[0]
-
-                                LOG.info(string)
-                                while (buffer[0] != '}') {
-                                    input.read(buffer)
-                                    string += buffer[0]
-                                }
-
-                                LOG.info("message: " + string)
-
-                                val readyResponse = JSONObject(string)
-
-                                if(readyResponse.get("answer").toString() == "NO COMMANDS")
-                                {
-                                    string = ""
-                                } else {
-                                    control.executeTask(readyResponse)
-                                }
-                            }
-                        }catch(e :Exception) {
-                        } finally {
-                            if(!registerSocket.isClosed){
-                                registerSocket.close()
-                                LOG.info("Closing Socket")
-                            }
-                        }
-
-                        Thread.sleep(5000)
-                    }
-
-
-
-                    /*val input = BufferedReader(InputStreamReader(registerSocket.getInputStream()))
-
-                    while (input.read(buffer) == -1) {
-                        Thread.sleep(500)
-                    }
-
-                    string += buffer[0]
-
-                    while (buffer[0] != '\u0000') {
-                        input.read(buffer)
-                        string += buffer[0]
-                    }
-
-                    val readyResponse = JSONObject(string)
-
-                    LOG.info(readyResponse.get("answer").toString())
-
-                    if(!registerSocket.isClosed){
-                        registerSocket.close()
-                    }
-
-                    /*//Waiting for Server Response
-                    while (input.read(buffer) == -1) {
-                        Thread.sleep(500)
-                    }
-
-                    string += buffer[0]
-
-                    while (buffer[0] != '\u0000') {
-                        input.read(buffer)
-                        string += buffer[0]
-                    }
-
-                    val readyResponse = JSONObject(string)
-
-                    LOG.info(readyResponse.get("answer").toString())
-
-                    string = ""
-
-                    //Waiting for Server Response
-                    while (input.read(buffer) == -1) {
-                        Thread.sleep(500)
-                    }
-
-                    string += buffer[0]
-
-                    while (buffer[0] != '\u0000') {
-                        input.read(buffer)
-                        string += buffer[0]
-                    }
-
-                    val serverResponse = JSONObject(string)
-
-                    control.showUserConfirmation(serverResponse.get("answer").toString())
-
-                    while (userRegisterConfirmation == 0) {
-                        Thread.sleep(500)
-                    }
-
-                    val confirmationJson = JSONObject()
-
-                    confirmationJson.put("device", "pcclient")
-
-                    if (userRegisterConfirmation == -1) {
-                        confirmationJson.put("confirmation", false)
-                    } else {
-                        confirmationJson.put("confirmation", true)
-                    }
-
-                    objectoutputstream.flush()
-                    objectoutputstream.writeObject(confirmationJson.toString())*/
-*/
-                } catch(e :Exception) {
-                    control.showWarning("Registrierung fehlgeschlagen! Bitte versuchen Sie es erneut." + e.message)
-                }finally {
-                    if(!registerSocket.isClosed) {
-                        registerSocket.close()
-                    }
-                }
-            } catch(e :Exception) {
-                control.showWarning("Verbindung zum Server konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+            while (awaitingResponse) {
+                awaitingResponse = confirmInstruction(port)
             }
+
+            awaitingResponse = true
+
+            while (awaitingResponse) {
+                awaitingResponse = getDeviceType(port)
+            }
+
+            while (userRegisterConfirmation == 0) {
+                Thread.sleep(1000)
+            }
+
+            val confirmationJson = JSONObject()
+            confirmationJson.put("device", "pcclient")
+            if (userRegisterConfirmation == -1) {
+                confirmationJson.put("koppeln", false)
+            } else {
+                confirmationJson.put("koppeln", true)
+            }
+
+            sendConfirmation(port, confirmationJson)
         }
     }
 
-    private fun taskHandler() {
-        thread(start = true) {
+    private fun sendConfirmation(port: Int, confirmationJson: JSONObject) {
+        LOG.info("Opening Socket")
+        try {
+            val socket = Socket(host, port)
             try {
-                //Wirft auf dem Server warum auch immer eine Fehlermeldung, senden des JSON läuft allerdings Problemlos
-                val objectoutputstream = ObjectOutputStream(taskOutputStream)
-                while (!taskSocket.isClosed) {
-                    val buffer :CharArray = charArrayOf(' ')
-                    var string = ""
+                socket.soTimeout = 10000
 
-                    //Waiting for Server Response
-                    while (taskInput.read(buffer) == -1){
-                        Thread.sleep(500)
-                    }
+                val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
 
-                    string += buffer[0]
-
-                    while(buffer[0] != '\u0000'){
-                        taskInput.read(buffer)
-                        string += buffer[0]
-                    }
-
-
-                    val serverResponse = JSONObject(string)
-
-                    control.executeTask(serverResponse)
-
-                    val confirmationJson = JSONObject()
-
-                    confirmationJson.put("device", "pcclient")
-                    //TODO("return success/failure")
-                    confirmationJson.put("taskExecuted",true)
-
-                    objectoutputstream.writeObject(confirmationJson)
-                    taskOutputStream.flush()
-                }
-            } catch (e: Exception) {
-                control.fatalClose("Ein Netzwerkfehler ist aufgetreten! Das Programm wird beendet")
+                objectoutputstream.writeObject(confirmationJson.toString())
+                objectoutputstream.flush()
+            } catch(e: ConnectException) {
+                control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+            } catch (e: UnknownHostException) {
+                control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
+            } catch (e: IOException) {
+                control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
             } finally {
-                if(!taskSocket.isClosed) {
-                    taskSocket.close()
+                if (!socket.isClosed) {
+                    socket.close()
                 }
+            }
+        } catch(e: ConnectException) {
+            control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+        } catch (e: UnknownHostException) {
+            control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+        }
+    }
+
+    private fun getDeviceType(port: Int): Boolean {
+        var waiting = true
+        val buffer: CharArray = charArrayOf(' ')
+        var string = ""
+        LOG.info("Opening Socket")
+        try {
+            val socket = Socket(host, port)
+            try {
+                socket.soTimeout = 10000
+
+                val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
+
+                val request = JSONObject()
+                request.put("device", "pcclient")
+                request.put("getDevice", "true")
+
+                objectoutputstream.writeObject(request.toString())
+                objectoutputstream.flush()
+
+                val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+
+                while (buffer[0] != '}') {
+                    input.read(buffer)
+                    string += buffer[0]
+                }
+
+                val serverResponse = JSONObject(string)
+
+                if (serverResponse.get("answer").toString() != "NO COMMANDS") {
+                    waiting = false
+                    control.showUserConfirmation(serverResponse.get("answer").toString())
+                }
+            } catch(e: ConnectException) {
+                control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+            } catch (e: UnknownHostException) {
+                control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
+            } catch (e: IOException) {
+                control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
+            } finally {
+                if (!socket.isClosed) {
+                    socket.close()
+                }
+            }
+        } catch(e: ConnectException) {
+            control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+        } catch (e: UnknownHostException) {
+            control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+        }
+        return waiting
+    }
+
+    private fun confirmInstruction(port: Int): Boolean {
+        var waiting = true
+        val buffer: CharArray = charArrayOf(' ')
+        var string = ""
+        LOG.info("Opening Socket")
+        try {
+            val socket = Socket(host, port)
+            try {
+                socket.soTimeout = 10000
+
+                val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
+
+                val request = JSONObject()
+                request.put("device", "pcclient")
+                request.put("instructions", "true")
+
+                objectoutputstream.writeObject(request.toString())
+                objectoutputstream.flush()
+
+                val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+
+                while (buffer[0] != '}') {
+                    input.read(buffer)
+                    string += buffer[0]
+                }
+
+                val readyResponse = JSONObject(string)
+
+                if (readyResponse.get("answer").toString() != "NO COMMANDS") {
+                    waiting = false
+                }
+            } catch(e: ConnectException) {
+                control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+            } catch (e: UnknownHostException) {
+                control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
+            } catch (e: IOException) {
+                control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
+            } finally {
+                if (!socket.isClosed) {
+                    socket.close()
+                }
+            }
+        } catch(e: ConnectException) {
+            control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+        } catch (e: UnknownHostException) {
+            control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+        }
+        return waiting
+    }
+
+    private fun sendPassword(json: JSONObject) {
+        try {
+            val socket = Socket(host, port)
+            try {
+                socket.soTimeout = 10000
+                val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
+
+                objectoutputstream.writeObject(json.toString())
+                objectoutputstream.flush()
+
+                socket.close()
+            } catch(e: ConnectException) {
+                control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+            } catch (e: UnknownHostException) {
+                control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
+            } catch (e: IOException) {
+                control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
+            } finally {
+                if (!socket.isClosed) {
+                    socket.close()
+                }
+            }
+        } catch(e: ConnectException) {
+            control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+        } catch (e: UnknownHostException) {
+            control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+        }
+    }
+
+    fun taskHandler() {
+        thread(start = true) {
+            var connectionRefusedCounter = 0
+            var working = true
+            val retrys = 20
+            while(working){
+                val buffer: CharArray = charArrayOf(' ')
+                var string = ""
+                LOG.info("Trying to open Tasksocket")
+                try {
+                    taskSocket = Socket(host, port)
+                    try {
+                        LOG.info("Tasksocket opened")
+                        taskSocket.soTimeout = 10000
+
+                        val objectoutputstream = ObjectOutputStream(taskSocket.getOutputStream())
+
+                        val json = JSONObject()
+                        json.put("device", "pcclient")
+                        json.put("instructions", "true")
+
+                        objectoutputstream.writeObject(json.toString())
+                        objectoutputstream.flush()
+
+                        val input = BufferedReader(InputStreamReader(taskSocket.getInputStream()))
+
+                        while (buffer[0] != '}') {
+                            input.read(buffer)
+                            string += buffer[0]
+                        }
+
+                        val serverResponse = JSONObject(string)
+
+                        if (serverResponse.get("answer").toString() != "NO COMMANDS") {
+                            LOG.info("Executing Task")
+                            control.executeTask(serverResponse)
+                        }
+                    } catch(e: ConnectException) {
+                        control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+                    } catch (e: UnknownHostException) {
+                        control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
+                    } catch (e: IOException) {
+                        control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
+                    } finally {
+                        if (!taskSocket.isClosed) {
+                            LOG.info("Closing Tasksocket")
+                            taskSocket.close()
+                        }
+                    }
+                    connectionRefusedCounter = 0
+                } catch(e: ConnectException) {
+                    connectionRefusedCounter++
+                    LOG.info("Server refusing connection on Tasksocket. No of retrys: " + (retrys - connectionRefusedCounter))
+                    if(connectionRefusedCounter >= retrys) {
+                        working = false
+                        control.fatalClose("Der Applikationsserver kann momentan nicht erreicht werden. Die Anwendung wird beendet. Bitte versuchen Sie es später noch einmal!")
+                    }
+                } catch (e: UnknownHostException) {
+                    control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+                }
+                Thread.sleep(4000)
             }
         }
     }
 
     fun onClose() {
-        if(!taskSocket.isClosed) {
+        if (!taskSocket.isClosed) {
             taskSocket.close()
         }
     }
