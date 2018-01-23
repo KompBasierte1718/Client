@@ -69,7 +69,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                 objectoutputstream.writeObject(confirmationJson.toString())
                 objectoutputstream.flush()
-            } catch(e: ConnectException) {
+            } catch (e: ConnectException) {
                 control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
             } catch (e: UnknownHostException) {
                 control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
@@ -80,7 +80,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     socket.close()
                 }
             }
-        } catch(e: ConnectException) {
+        } catch (e: ConnectException) {
             control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
         } catch (e: UnknownHostException) {
             control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
@@ -119,7 +119,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     waiting = false
                     control.showUserConfirmation(serverResponse.get("answer").toString())
                 }
-            } catch(e: ConnectException) {
+            } catch (e: ConnectException) {
                 control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
             } catch (e: UnknownHostException) {
                 control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
@@ -130,7 +130,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     socket.close()
                 }
             }
-        } catch(e: ConnectException) {
+        } catch (e: ConnectException) {
             control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
         } catch (e: UnknownHostException) {
             control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
@@ -169,7 +169,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 if (readyResponse.get("answer").toString() != "NO COMMANDS") {
                     waiting = false
                 }
-            } catch(e: ConnectException) {
+            } catch (e: ConnectException) {
                 control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
             } catch (e: UnknownHostException) {
                 control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
@@ -180,7 +180,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     socket.close()
                 }
             }
-        } catch(e: ConnectException) {
+        } catch (e: ConnectException) {
             control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
         } catch (e: UnknownHostException) {
             control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
@@ -199,7 +199,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 objectoutputstream.flush()
 
                 socket.close()
-            } catch(e: ConnectException) {
+            } catch (e: ConnectException) {
                 control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
             } catch (e: UnknownHostException) {
                 control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
@@ -210,7 +210,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     socket.close()
                 }
             }
-        } catch(e: ConnectException) {
+        } catch (e: ConnectException) {
             control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
         } catch (e: UnknownHostException) {
             control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
@@ -222,7 +222,7 @@ class JSONLink(private val control: Control, private val port: Int) {
             var connectionRefusedCounter = 0
             var working = true
             val retrys = 20
-            while(working){
+            while (working) {
                 val buffer: CharArray = charArrayOf(' ')
                 var string = ""
                 LOG.info("Trying to open Tasksocket")
@@ -254,7 +254,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                             LOG.info("Executing Task")
                             control.executeTask(serverResponse)
                         }
-                    } catch(e: ConnectException) {
+                    } catch (e: ConnectException) {
                         control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
                     } catch (e: UnknownHostException) {
                         control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
@@ -267,10 +267,10 @@ class JSONLink(private val control: Control, private val port: Int) {
                         }
                     }
                     connectionRefusedCounter = 0
-                } catch(e: ConnectException) {
+                } catch (e: ConnectException) {
                     connectionRefusedCounter++
                     LOG.info("Server refusing connection on Tasksocket. No of retrys: " + (retrys - connectionRefusedCounter))
-                    if(connectionRefusedCounter >= retrys) {
+                    if (connectionRefusedCounter >= retrys) {
                         working = false
                         control.fatalClose("Der Applikationsserver kann momentan nicht erreicht werden. Die Anwendung wird beendet. Bitte versuchen Sie es später noch einmal!")
                     }
@@ -283,8 +283,12 @@ class JSONLink(private val control: Control, private val port: Int) {
     }
 
     fun onClose() {
-        if (!taskSocket.isClosed) {
-            taskSocket.close()
+        try {
+            if (!taskSocket.isClosed) {
+                taskSocket.close()
+            }
+        } catch (e: UninitializedPropertyAccessException) {
+            return
         }
     }
 }
