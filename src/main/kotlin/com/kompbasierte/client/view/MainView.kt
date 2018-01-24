@@ -115,7 +115,7 @@ class MainView : View("Hello Tornado") {
     }
 
     fun showWarning(text: String, close: Boolean) {
-        LOG.info("Show closing Warning: "+text)
+        LOG.info("Show Warning: "+text+" // Close: "+close)
         genericWarningView.setWarningText(text)
         genericWarningView.setCloseBehaviour(close)
         runAsync{}ui {genericWarningView.openModal()}
