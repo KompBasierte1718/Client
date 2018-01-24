@@ -120,11 +120,14 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
      * At the end this function selects the first element in the AppList to prevent NULLPointer
      */
     fun refreshApplicationData() {
+        LOG.info("Refreshing Appdata")
         appList = master.getApplications()
         listView.items = appList.observable()
         listView.refresh()
         LOG.info("Selecting first App")
-        listView.selectionModel.selectFirst()
+        //Dies führt zu einem redundantem Aufruf von refreshCommandData beim Start der App
+        //Wird vermutlich inzwischen nicht mehr benötigt
+//        listView.selectionModel.selectFirst()
     }
 
     /**
@@ -134,16 +137,23 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
      * Database and show the (new) Content.
      */
     fun refreshCommandData() {
+        LOG.info("Refreshing Commanddata")
         if (!listView.items.isEmpty()) {
-            LOG.info("Existing Apps found")
+            LOG.info("AppList is not empty")
             if (listView.selectionModel.selectedIndex < 0) {
                 LOG.info("Appindex is negative / No active Selection")
                 listView.selectionModel.selectFirst()
+                LOG.info("Selected first Entry")
+                //Return, da das select automatisch die Funktion neu aufruft und Sie sonst doppelt ausgeführt wird
+                return
             }
             val app = getSelectedApplication()
             commands = master.getCommandsForApplication(app)
             table.items = commands.observable()
+            LOG.info("Show available Commands")
             table.refresh()
+        }else{
+            LOG.info("AppList empty")
         }
     }
 
@@ -155,7 +165,7 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
      * @see Application
      */
     fun getSelectedApplication(): Application {
-        LOG.info("Getting Applications")
+        LOG.info("Getting selected App in Listview")
         return listView.selectionModel.selectedItem
     }
 }

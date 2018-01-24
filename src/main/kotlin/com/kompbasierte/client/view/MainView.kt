@@ -76,6 +76,7 @@ class MainView : View("Hello Tornado") {
 
         //Open AppAndCommandView in Center and refresh Data
         center = vbox { add(applicationsAndCommandsView) }
+        LOG.info("Refresh Table after init")
         refreshTableView()
 
 //        Vorerst nicht mehr benötigt
@@ -100,6 +101,7 @@ class MainView : View("Hello Tornado") {
      */
     fun saveCommandForApplication(commandToSave: Command) {
         controller.saveCommandForApplication(commandToSave , applicationsAndCommandsView.getSelectedApplication())
+        LOG.info("Refresh Table after saveCommand")
         refreshTableView()
     }
 
@@ -130,7 +132,9 @@ class MainView : View("Hello Tornado") {
      * Updates the Table-Data of the AppAndCommandView
      */
     private fun refreshTableView() {
+        LOG.info("Refresh Appdata")
         applicationsAndCommandsView.refreshApplicationData()
+        LOG.info("Refresh Commanddata")
         applicationsAndCommandsView.refreshCommandData()
     }
 
@@ -146,6 +150,7 @@ class MainView : View("Hello Tornado") {
 
     fun deleteCommandForApplication(selectedApp: Application, commandToDelete: Command) {
         controller.deleteCommandForApplication(commandToDelete, selectedApp)
+        LOG.info("Refresh Table after deleteCommand")
         refreshTableView()
     }
 
@@ -171,6 +176,7 @@ class MainView : View("Hello Tornado") {
 
     fun saveApplication(application: Application){
         controller.saveApplication(application)
+        LOG.info("Refresh Table after saveApp")
         refreshTableView()
     }
 
@@ -180,6 +186,7 @@ class MainView : View("Hello Tornado") {
 
     fun deleteApplication(selectedItem: Application) {
         controller.deleteApplication(selectedItem)
+        LOG.info("Refresh Table after deleteApp")
         refreshTableView()
     }
 
