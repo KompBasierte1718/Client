@@ -28,30 +28,39 @@ class JSONLink(private val control: Control, private val port: Int) {
 
     fun registerDevice(json: JSONObject, port: Int) {
         thread(start = true) {
-            sendPassword(json)
+            if (sendPassword(json, port)) {
 
-            var awaitingResponse = true
+                var awaitingResponse = true
+                var connectionCounter = 0
 
-            Thread.sleep(5000)
+                Thread.sleep(5000)
 
-            while (awaitingResponse) {
-                awaitingResponse = getDeviceType(port)
-                Thread.sleep(4000)
-            }
+                while (awaitingResponse && connectionCounter <= 30) {
+                    awaitingResponse = getDeviceType(port)
+                    Thread.sleep(10000)
+                    connectionCounter++
+                }
 
-            while (userRegisterConfirmation == 0) {
-                Thread.sleep(1000)
-            }
+                if (awaitingResponse) {
+                    while (userRegisterConfirmation == 0) {
+                        Thread.sleep(1000)
+                    }
 
-            val confirmationJson = JSONObject()
-            confirmationJson.put("device", "pcclient")
-            if (userRegisterConfirmation == -1) {
-                confirmationJson.put("koppeln", false)
+                    val confirmationJson = JSONObject()
+                    confirmationJson.put("device", "pcclient")
+                    if (userRegisterConfirmation == -1) {
+                        confirmationJson.put("koppeln", false)
+                    } else {
+                        confirmationJson.put("koppeln", true)
+                    }
+
+                    sendConfirmation(port, confirmationJson)
+                } else {
+                    control.showWarning("Keine Antwort vom Server erhalten. Bitte versuchen Sie später erneut ein Gerät zu verbinden!")
+                }
             } else {
-                confirmationJson.put("koppeln", true)
+                control.showWarning("Keine Antwort vom Server erhalten. Bitte versuchen Sie später erneut ein Gerät zu verbinden!")
             }
-
-            sendConfirmation(port, confirmationJson)
         }
     }
 
@@ -101,7 +110,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 request.put("device", "pcclient")
                 request.put("getDevice", "true")
 
-                LOG.info(request.toString())
+                LOG.info("Sending request for a device to connect...")
                 objectoutputstream.flush()
                 objectoutputstream.writeObject(request.toString())
                 objectoutputstream.flush()
@@ -124,10 +133,13 @@ class JSONLink(private val control: Control, private val port: Int) {
                 if (serverResponse.has("answer")) {
                     if (serverResponse.get("answer").toString() != "WAITING FOR VA") {
                         waiting = false
+                        LOG.info("Device to connect found: " + serverResponse.get("answer").toString())
                         control.showUserConfirmation(serverResponse.get("answer").toString())
+                    }else{
+                        LOG.info("Still waiting for device to connect...")
                     }
                 } else {
-                    LOG.info(string)
+                    LOG.info("Unexpected JSON received: " + string)
                 }
             } catch (e: ConnectException) {
                 control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
@@ -137,6 +149,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
             } finally {
                 if (!socket.isClosed) {
+                    LOG.info("Closing Socket")
                     socket.close()
                 }
             }
@@ -148,18 +161,20 @@ class JSONLink(private val control: Control, private val port: Int) {
         return waiting
     }
 
-    private fun sendPassword(json: JSONObject) {
+    private fun sendPassword(json: JSONObject, port: Int): Boolean {
         val buffer: CharArray = charArrayOf(' ')
         var string = ""
         try {
             val socket = Socket(host, port)
             try {
                 socket.soTimeout = 10000
-                val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
+                val outputstream = socket.getOutputStream()
+                val objectoutputstream = ObjectOutputStream(outputstream)
 
                 LOG.info(json.toString())
                 objectoutputstream.flush()
-                objectoutputstream.writeObject(json.toString())
+                val jsonstring = json.toString()
+                objectoutputstream.writeObject(jsonstring)
                 objectoutputstream.flush()
 
                 val input = BufferedReader(InputStreamReader(socket.getInputStream()))
@@ -179,29 +194,39 @@ class JSONLink(private val control: Control, private val port: Int) {
                 val serverResponse = JSONObject(string)
                 if (serverResponse.has("answer")) {
                     if (serverResponse.get("answer").toString() != "WAITING FOR VA") {
-                        control.showUserConfirmation(serverResponse.get("answer").toString())
+                        LOG.info("answer: " + serverResponse.get("answer").toString())
+                        return false
+                    } else {
+                        LOG.info("Password successfully transmitted")
                     }
                 } else {
                     LOG.info(string)
+                    return false
                 }
 
-                socket.close()
             } catch (e: ConnectException) {
                 control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+                return false
             } catch (e: UnknownHostException) {
                 control.showWarning("Fehler bei der Verbindung zum Applikationsserver! Bitte überprüfen Sie ihre Internetverbindung.")
+                return false
             } catch (e: IOException) {
                 control.showWarning("Fehler beim Öffnen der Verbindung zum Applikationsserver! Bitte versuchen Sie es später noch einmal.")
+                return false
             } finally {
                 if (!socket.isClosed) {
+                    LOG.info("Closing Socket")
                     socket.close()
                 }
             }
         } catch (e: ConnectException) {
             control.showWarning("Der Applikationsserver hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
+            return false
         } catch (e: UnknownHostException) {
             control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
+            return false
         }
+        return true
     }
 
     fun taskHandler() {
