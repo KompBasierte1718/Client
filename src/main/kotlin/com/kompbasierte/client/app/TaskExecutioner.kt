@@ -30,7 +30,7 @@ class TaskExecutioner constructor(private val control: Control){
             string1 = ""
         }
 
-        val string2: String = "VK_" + sc[1]
+        val string2: String = "VK_" + sc[1].toUpperCase()
         val field1: Field = KeyEvent::class.java.getField(string1)
         val field2: Field = KeyEvent::class.java.getField(string2)
         val key1: Int = field1.getInt(null)

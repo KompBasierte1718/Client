@@ -799,7 +799,7 @@ class Control constructor(private val mainView: MainView) {
             return
         }
 
-        if(commandName == "starten") {
+        if(commandName == "starten" || commandName == "starte") {
             taskExec.executeTask(pfad)
         } else {
             for (i in commandList) {
