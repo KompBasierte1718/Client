@@ -239,6 +239,35 @@ class Control constructor(private val mainView: MainView) {
     }
 
     /**
+     * Gets all known Commands for a specific application from the Database
+     *
+     * @param application The application to get the Commands for
+     * @return ArrayList of known Commands
+     * @see Command
+     * @see Application
+     */
+    fun getApplicationCountforCommand(command: Command): Int {
+        var count = 0
+        val stmt = db.createStatement()
+        val sql = "SELECT COUNT(*) FROM Programm JOIN Programm_Befehl ON Programm_Befehl.Programm_ID  = Programm.ID JOIN Befehl" +
+                " ON Programm_Befehl.Befehl_ID = Befehl.ID WHERE Befehl.ID = ${command.id};"
+        try {
+            val result = stmt!!.executeQuery(sql)
+            while (result.isBeforeFirst) {
+                result.next()
+            }
+            count = result.getInt("COUNT(*)")
+            result.close()
+            return count
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return -1
+        } finally {
+            stmt.close()
+        }
+    }
+
+    /**
      * Gets one Application from the Database
      *
      * @param id The Id to get the Application
@@ -405,7 +434,7 @@ class Control constructor(private val mainView: MainView) {
             return null
         }
         val stmt = db.createStatement()
-        val sql = "SELECT * FROM Befehl WHERE ID = '$name';"
+        val sql = "SELECT * FROM Befehl WHERE Name = '$name';"
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
@@ -552,31 +581,42 @@ class Control constructor(private val mainView: MainView) {
      * @param newCommand The new Command to update
      * @see Command
      */
-    fun updateCommand(oldCommand: Command, newCommand: Command) {
-        if (oldCommand.id == 0 || newCommand.id == 0 || oldCommand.id != newCommand.id) {
+    fun updateCommand(oldCommand: Command, newCommand: Command, application: Application) {
+        var countApplications = getApplicationCountforCommand(oldCommand)
+        if(countApplications == -1) {
             return
         }
-        var sql: String
-        if (oldCommand.name != newCommand.name) {
-            sql = "UPDATE Befehl SET Name = '${newCommand.name}' WHERE ID = ${newCommand.id};"
-            println(sql)
-            executeUpdate(sql)
+        if (countApplications == 0 || countApplications == 1) {
+            if (oldCommand.id == 0 || newCommand.id == 0 || oldCommand.id != newCommand.id) {
+                return
+            }
+            var sql: String
+            if (oldCommand.name != newCommand.name) {
+                sql = "UPDATE Befehl SET Name = '${newCommand.name}' WHERE ID = ${newCommand.id};"
+                println(sql)
+                executeUpdate(sql)
+            }
+            if (oldCommand.vACallout != newCommand.vACallout) {
+                sql = "UPDATE Befehl SET VACallout = '${newCommand.vACallout}' WHERE ID = ${newCommand.id};"
+                println(sql)
+                executeUpdate(sql)
+            }
+            if (oldCommand.shortcut != newCommand.shortcut) {
+                sql = "UPDATE Befehl SET shortcut = '${newCommand.shortcut}' WHERE ID = ${newCommand.id};"
+                println(sql)
+                executeUpdate(sql)
+            }
+            if (oldCommand.active != newCommand.active) {
+                val active = boolToInt(newCommand.active)
+                sql = "UPDATE Befehl SET Aktiv = $active WHERE ID = ${newCommand.id};"
+                println(sql)
+                executeUpdate(sql)
+            }
+            return
         }
-        if (oldCommand.vACallout != newCommand.vACallout) {
-            sql = "UPDATE Befehl SET VACallout = '${newCommand.vACallout}' WHERE ID = ${newCommand.id};"
-            println(sql)
-            executeUpdate(sql)
-        }
-        if (oldCommand.shortcut != newCommand.shortcut) {
-            sql = "UPDATE Befehl SET shortcut = '${newCommand.shortcut}' WHERE ID = ${newCommand.id};"
-            println(sql)
-            executeUpdate(sql)
-        }
-        if (oldCommand.active != newCommand.active) {
-            val active = boolToInt(newCommand.active)
-            sql = "UPDATE Befehl SET Aktiv = $active WHERE ID = ${newCommand.id};"
-            println(sql)
-            executeUpdate(sql)
+        if (countApplications > 1) {
+            deleteCommandForApplication(oldCommand,application)
+            saveCommandForApplication(newCommand, application)
         }
     }
 
