@@ -49,7 +49,7 @@ class MainView : View("Hello Tornado") {
                 item("Test Taskexec").onAction = EventHandler<ActionEvent> {
                     val json = JSONObject()
                     json.put("program", "Google Chrome")
-                    json.put("task", "starten")
+                    json.put("task", "starte")
                     controller.executeTask(json)
                 }
                 item("Test Robot").onAction = EventHandler<ActionEvent> {
