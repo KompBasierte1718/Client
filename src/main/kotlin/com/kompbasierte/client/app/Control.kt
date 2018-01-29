@@ -579,7 +579,7 @@ class Control constructor(private val mainView: MainView) {
      * @param newCommand The new Command to update
      * @see Command
      */
-    fun updateCommand(oldCommand: Command, newCommand: Command, application: Application) {
+    private fun updateCommand(oldCommand: Command, newCommand: Command, application: Application) {
         var countApplications = getApplicationCountforCommand(oldCommand)
         if(countApplications == -1) {
             return

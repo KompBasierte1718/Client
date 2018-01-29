@@ -100,7 +100,8 @@ class MainView : View("Hello Tornado") {
      *
      */
     fun saveCommandForApplication(commandToSave: Command, updateCommand: Boolean) {
-        controller.saveCommandForApplication(commandToSave , applicationsAndCommandsView.getSelectedApplication(), updateCommand)
+        controller.saveCommandForApplication(commandToSave ,
+                applicationsAndCommandsView.getSelectedApplication(), updateCommand)
         LOG.info("Refresh Table after saveCommand")
         refreshTableView()
     }
