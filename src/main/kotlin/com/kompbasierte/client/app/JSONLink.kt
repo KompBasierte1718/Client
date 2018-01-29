@@ -76,6 +76,8 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                 val objectoutputstream = ObjectOutputStream(socket.getOutputStream())
 
+                confirmationJson.put("deviceID",getHashedMac())
+
                 objectoutputstream.flush()
                 objectoutputstream.writeObject(confirmationJson.toString())
                 objectoutputstream.flush()
@@ -112,10 +114,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                 val request = JSONObject()
                 request.put("device", "pcclient")
                 request.put("getDevice", "true")
-
-                val result = getHashedMac()
-
-                request.put("deviceID",result.toString())
+                request.put("deviceID",getHashedMac())
 
                 LOG.info("Sending request for a device to connect...")
                 objectoutputstream.flush()
@@ -204,6 +203,8 @@ class JSONLink(private val control: Control, private val port: Int) {
                 val outputstream = socket.getOutputStream()
                 val objectoutputstream = ObjectOutputStream(outputstream)
 
+                json.put("deviceID",getHashedMac())
+
                 LOG.info(json.toString())
                 objectoutputstream.flush()
                 val jsonstring = json.toString()
@@ -282,6 +283,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                         val json = JSONObject()
                         json.put("device", "pcclient")
                         json.put("instructions", "true")
+                        json.put("deviceID",getHashedMac())
 
                         objectoutputstream.flush()
                         objectoutputstream.writeObject(json.toString())
