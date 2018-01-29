@@ -41,7 +41,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                     connectionCounter++
                 }
 
-                if (awaitingResponse) {
+                if (!awaitingResponse) {
                     while (userRegisterConfirmation == 0) {
                         Thread.sleep(1000)
                     }
