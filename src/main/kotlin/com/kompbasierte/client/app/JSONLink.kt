@@ -276,7 +276,7 @@ class JSONLink(private val control: Control, private val port: Int) {
                                 control.executeTask(serverResponse)
                             }
                         } else {
-                            LOG.info("No Answer Tag found in Server Instructions")
+                            LOG.info("No Answer Tag found in Server Instructions" + serverResponse.toString())
                         }
                     } catch (e: ConnectException) {
                         control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")
