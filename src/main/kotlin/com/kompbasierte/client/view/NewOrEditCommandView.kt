@@ -9,14 +9,23 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyCombination.*
 import javafx.scene.input.KeyEvent
 import tornadofx.*
+import java.util.logging.Logger
 
 class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Command") {
+
+    companion object {
+        private val LOG = Logger.getLogger(ApplicationsAndCommandsTableView::class.java.name)
+    }
+
+    private var commandID = 0
     private lateinit var nameText: TextField
     private lateinit var activeCheckbox: CheckBox
     private lateinit var strgLabel: Label
     private lateinit var altLabel: Label
     private lateinit var shiftLabel: Label
     private lateinit var keyLabel: Label
+    private lateinit var listenerButton:Button
+    private var listen=false
 
     //Helper Vars for Key-Detection
     private var strgDown = false
@@ -51,8 +60,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                 form {
                     fieldset {
                         field("Shortcut") {
-                            val listenerButton = button("Lauschen") {
-                                var listen = false
+                            listenerButton = button("Lauschen") {
                                 action {
                                     listen = !listen
                                     if (listen) {
@@ -63,30 +71,12 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                                             if (e != null) {
                                                 //Check CTRL-Status
                                                 strgDown = e.isShortcutDown
-                                                val controlModifier: KeyCombination.ModifierValue
-                                                controlModifier = if (strgDown) {
-                                                    ModifierValue.DOWN
-                                                } else {
-                                                    ModifierValue.UP
-                                                }
 
                                                 //Check Alt-Status
                                                 altDown = e.isAltDown
-                                                val altModifier: KeyCombination.ModifierValue
-                                                altModifier = if (altDown) {
-                                                    ModifierValue.DOWN
-                                                } else {
-                                                    ModifierValue.UP
-                                                }
 
                                                 //Check Shift-Status
                                                 shiftDown = e.isShiftDown
-                                                val shiftModifier: KeyCombination.ModifierValue
-                                                shiftModifier = if (shiftDown) {
-                                                    ModifierValue.DOWN
-                                                } else {
-                                                    ModifierValue.UP
-                                                }
 
                                                 //Save for unknown keys on special keyboads
                                                 if (e.code == KeyCode.UNDEFINED) {
@@ -97,10 +87,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                                                 }
                                                 //Save for modifier key and unknown keys
                                                 if (!e.code.isModifierKey && e.code != KeyCode.UNDEFINED) {
-                                                    //SHIFT, CTRL, ALT, META, SHORTCUT
-                                                    pressedKeyWithMod = KeyCodeCombination(e.code, shiftModifier,
-                                                            controlModifier, altModifier, ModifierValue.UP,
-                                                            ModifierValue.UP)
+                                                    pressedKeyWithMod = createKeyCombinationWithModifier()
                                                 }
                                                 //Consume KeyEvent to prevent further processing of it
                                                 e.consume()
@@ -147,7 +134,8 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
         buttonbar {
             button("Save") {
                 action {
-                    master.saveCommandForApplication(Command(0, nameText.text, nameText.text,
+                    LOG.info("Saving with Shortcut: " + pressedKeyWithMod.toString())
+                    master.saveCommandForApplication(Command(commandID, nameText.text, nameText.text,
                             "" + pressedKeyWithMod.toString(), activeCheckbox.isSelected))
                     close()
                 }
@@ -160,6 +148,33 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
         }
     }
 
+    fun openEditObject(command: Command) {
+        commandID = command.id
+        nameText.text = command.name
+        activeCheckbox.isSelected = command.active
+
+        LOG.info("Erstelle Shortcut Key zu " + command.shortcut)
+        val sc = command.shortcut.split("+")
+        if (sc.contains("Strg") || sc.contains("Ctrl")) {
+            strgDown = true
+            LOG.info("Strg gefunden")
+        }
+        if (sc.contains("ALT")) {
+            altDown = true
+            LOG.info("Alt gefunden")
+        }
+        if (sc.contains("Shift")) {
+            shiftDown = true
+            LOG.info("Shift gefunden")
+        }
+        keyName = KeyCode.getKeyCode(sc.last())
+        LOG.info("Key " + keyName.toString() + " gefunden")
+
+        pressedKeyWithMod = createKeyCombinationWithModifier()
+
+        refreshPane()
+    }
+
     private fun refreshPane() {
         strgLabel.isVisible = strgDown
         altLabel.isVisible = altDown
@@ -169,6 +184,44 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
             keyLabel.text = keyName.getName()
         }
         onRefresh()
+    }
+
+    private fun createKeyCombinationWithModifier(): KeyCodeCombination {
+        val controlModifier: KeyCombination.ModifierValue = if (strgDown) {
+            ModifierValue.DOWN
+        } else {
+            ModifierValue.UP
+        }
+
+        val altModifier: KeyCombination.ModifierValue = if (altDown) {
+            ModifierValue.DOWN
+        } else {
+            ModifierValue.UP
+        }
+
+        val shiftModifier: KeyCombination.ModifierValue = if (shiftDown) {
+            ModifierValue.DOWN
+        } else {
+            ModifierValue.UP
+        }
+        //Order: SHIFT, CTRL, ALT, META(MAC), SHORTCUT(Strg or Meta)
+        return KeyCodeCombination(keyName, shiftModifier, controlModifier, altModifier, ModifierValue.UP, ModifierValue.UP)
+    }
+
+    fun clear() {
+        listen=false
+        commandID = 0
+        nameText.text = ""
+        keyName = KeyCode.A
+        strgDown = false
+        altDown = false
+        shiftDown = false
+        pressedKeyWithMod = createKeyCombinationWithModifier()
+        refreshPane()
+
+        //Workaround für schließen mit aktiviertem Button
+        listenerButton.text="Lausche"
+        listenerButton.onKeyPressedProperty().set(null)
     }
 
 }
