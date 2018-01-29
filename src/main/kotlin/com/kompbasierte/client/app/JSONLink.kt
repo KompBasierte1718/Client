@@ -270,9 +270,13 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                         val serverResponse = JSONObject(string)
 
-                        if (serverResponse.get("answer").toString().toUpperCase() != "NO COMMANDS") {
-                            LOG.info("Executing Task")
-                            control.executeTask(serverResponse)
+                        if (serverResponse.has("answer")) {
+                            if (serverResponse.get("answer").toString().toUpperCase() != "NO COMMANDS") {
+                                LOG.info("Executing Task")
+                                control.executeTask(serverResponse)
+                            }
+                        } else {
+                            LOG.info("No Answer Tag found in Server Instructions")
                         }
                     } catch (e: ConnectException) {
                         control.showWarning("Der Server hat die Verbindung abgelehnt. Bitte versuchen Sie es später noch einmal")

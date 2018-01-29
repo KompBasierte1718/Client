@@ -62,7 +62,7 @@ class Control constructor(private val mainView: MainView) {
 
     private fun connectToService() {
         //etablish connection to webserver here
-        //jsonLink.taskHandler()
+        jsonLink.taskHandler()
     }
 
     fun registerToService(arg: String) {
