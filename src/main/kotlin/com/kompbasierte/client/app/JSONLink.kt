@@ -4,10 +4,13 @@ import com.kompbasierte.client.view.MainView
 import org.json.JSONObject
 import java.io.*
 import java.net.ConnectException
+import java.net.InetAddress
 import java.net.Socket
 import java.net.UnknownHostException
 import java.util.logging.Logger
 import kotlin.concurrent.thread
+import java.net.NetworkInterface
+import java.security.MessageDigest
 
 
 class JSONLink(private val control: Control, private val port: Int) {
@@ -110,6 +113,10 @@ class JSONLink(private val control: Control, private val port: Int) {
                 request.put("device", "pcclient")
                 request.put("getDevice", "true")
 
+                val result = getHashedMac()
+
+                request.put("deviceID",result.toString())
+
                 LOG.info("Sending request for a device to connect...")
                 objectoutputstream.flush()
                 objectoutputstream.writeObject(request.toString())
@@ -159,6 +166,32 @@ class JSONLink(private val control: Control, private val port: Int) {
             control.showWarning("Verbindung zum Applikationsserver konnte nicht aufgebaut werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut!")
         }
         return waiting
+    }
+
+    /**
+     * Retrieves the clients mac address and returns it as a hashed value
+     */
+    private fun getHashedMac(): String {
+        val ip = InetAddress.getLocalHost();
+        val network = NetworkInterface.getByInetAddress(ip)
+        val mac = network.getHardwareAddress()
+        val sb = StringBuilder()
+        for (i in 0 until mac.size) {
+            sb.append(String.format("%02X%s", mac[i], if (i < mac.size - 1) "-" else ""))
+        }
+
+        val HEX_CHARS = "0123456789ABCDEF"
+        val bytes = MessageDigest
+                .getInstance("SHA-512")
+                .digest(sb.toString().toByteArray())
+        val result = StringBuilder(bytes.size * 2)
+
+        bytes.forEach {
+            val i = it.toInt()
+            result.append(HEX_CHARS[i shr 4 and 0x0f])
+            result.append(HEX_CHARS[i and 0x0f])
+        }
+        return result.toString()
     }
 
     private fun sendPassword(json: JSONObject, port: Int): Boolean {
