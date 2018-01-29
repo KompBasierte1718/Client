@@ -842,11 +842,11 @@ class Control constructor(private val mainView: MainView) {
             return
         }
 
-        if(commandName == "starten" || commandName == "starte") {
+        if(commandName == "starten" || commandName == "starte" && app.active) {
             taskExec.executeTask(pfad)
         } else {
             for (i in commandList) {
-                if(i.name == commandName) {
+                if (i.name == commandName && i.active) {
                     taskExec.executeCommand(i.shortcut)
                 }
             }
