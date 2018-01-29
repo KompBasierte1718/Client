@@ -52,7 +52,7 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
             hbox {
                 button("Applikation hinzufügen") {
                     action {
-                        master.openApplicationEdit()
+                        master.openApplicationNew()
                     }
                 }
                 button("Applikation bearbeiten") {
@@ -79,13 +79,11 @@ class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
             hbox {
                 button("Neuer Befehl") {
                     action {
-                        master.openCommandEdit()
+                        master.openCommandNew()
                     }
                 }
                 button("Befehl bearbeiten") {
-                    isDisable = true
-                    tooltip = Tooltip("Später implementiert")
-                    //TODO("Not implemented")
+                    action{master.openCommandEdit(table.selectedItem)}
                 }
                 button("Löschen") {
                     action {
