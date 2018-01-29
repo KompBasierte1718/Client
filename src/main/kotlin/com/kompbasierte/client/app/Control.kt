@@ -460,29 +460,20 @@ class Control constructor(private val mainView: MainView) {
      * @see Command
      * @see Application
      */
-    fun saveCommandForApplication(commandToSave: Command, application: Application) {
-        var id = 0
-        var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
-        val stmt = db.createStatement()
-
-        try {
-            val result = stmt!!.executeQuery(sql)
-            while (result.isBeforeFirst) {
-                result.next()
+    fun saveCommandForApplication(commandToSave: Command, application: Application, updateCommand: Boolean) {
+        if (updateCommand) {
+            val oldCommand = getCommand(commandToSave.id)
+            if (oldCommand != null) {
+                updateCommand(oldCommand, commandToSave, application)
             }
-            id = result.getInt("ID")
-            result.close()
-        } catch (e: SQLException) {
-            mainView.showWarning(e.toString())
-        } finally {
-            stmt.close()
-        }
-        if (id == 0) {
+        } else {
+            val stmt = db.createStatement()
+            var id = 0
             val active = boolToInt(commandToSave.active)
-            sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
+            var sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
                     "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
             println(sql)
-            executeUpdate(sql)
+            val changes = executeUpdate(sql)
             sql = "SELECT ID FROM Befehl WHERE Name = '${commandToSave.name}';"
             try {
                 val result = stmt!!.executeQuery(sql)
@@ -496,10 +487,14 @@ class Control constructor(private val mainView: MainView) {
             } finally {
                 stmt.close()
             }
+            if(changes != 0) {
+                sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (${application.id}, $id);"
+                println(sql)
+                executeUpdate(sql)
+            } else {
+                mainView.showWarning("Es gibt ein Befehl mit dem Namen schon.")
+            }
         }
-        sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (${application.id}, $id);"
-        println(sql)
-        executeUpdate(sql)
     }
 
     /**
@@ -618,8 +613,11 @@ class Control constructor(private val mainView: MainView) {
             return
         }
         if (countApplications > 1) {
+            if(oldCommand.name == newCommand.name) {
+                newCommand.name = newCommand.name + '_' + application.name
+            }
             deleteCommandForApplication(oldCommand,application)
-            saveCommandForApplication(newCommand, application)
+            saveCommandForApplication(newCommand, application, false)
         }
     }
 
@@ -782,15 +780,17 @@ class Control constructor(private val mainView: MainView) {
         }
     }
 
-    private fun executeUpdate(sql: String) {
+    private fun executeUpdate(sql: String) : Int {
         val stmt = db.createStatement()
+        var changes = 0
         try {
-            stmt.executeUpdate(sql)
+            changes = stmt.executeUpdate(sql)
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
         } finally {
             stmt.close()
         }
+        return changes
     }
 
     private fun closeDatabase() {

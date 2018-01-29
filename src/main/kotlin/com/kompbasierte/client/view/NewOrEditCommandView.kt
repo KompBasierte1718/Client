@@ -26,6 +26,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
     private lateinit var keyLabel: Label
     private lateinit var listenerButton:Button
     private var listen=false
+    private var updateCommand = false
 
     //Helper Vars for Key-Detection
     private var strgDown = false
@@ -136,7 +137,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                 action {
                     LOG.info("Saving with Shortcut: " + pressedKeyWithMod.toString())
                     master.saveCommandForApplication(Command(commandID, nameText.text, nameText.text,
-                            "" + pressedKeyWithMod.toString(), activeCheckbox.isSelected))
+                            "" + pressedKeyWithMod.toString(), activeCheckbox.isSelected),updateCommand)
                     close()
                 }
             }
@@ -149,6 +150,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
     }
 
     fun openEditObject(command: Command) {
+        updateCommand = true
         commandID = command.id
         nameText.text = command.name
         activeCheckbox.isSelected = command.active
@@ -218,6 +220,8 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
         shiftDown = false
         pressedKeyWithMod = createKeyCombinationWithModifier()
         refreshPane()
+
+        updateCommand = false
 
         //Workaround für schließen mit aktiviertem Button
         listenerButton.text="Lausche"
