@@ -825,8 +825,10 @@ class Control constructor(private val mainView: MainView) {
     }
 
     fun executeTask(json: JSONObject) {
-        val progName: String = json.get("program").toString()
-        val commandName: String = json.get("task").toString()
+        val instruction: String = json.get("program").toString()
+        instruction.split(" ")
+        val progName: String = instruction[1].toString()
+        val commandName: String = instruction[0].toString()
         val app = getApplication(progName)
         val pfad: String
         val commandList: ArrayList<Command>
@@ -842,7 +844,9 @@ class Control constructor(private val mainView: MainView) {
             return
         }
 
-        if(commandName == "starten" || commandName == "starte" && app.active) {
+        if(commandName == "starten" || commandName == "starte"
+                || commandName == "Starten" || commandName == "Starte"
+                    && app.active) {
             taskExec.executeTask(pfad)
         } else {
             for (i in commandList) {
