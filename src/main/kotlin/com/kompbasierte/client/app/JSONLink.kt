@@ -131,7 +131,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                 val serverResponse = JSONObject(string)
                 if (serverResponse.has("answer")) {
-                    if (serverResponse.get("answer").toString() != "WAITING FOR VA") {
+                    if (serverResponse.get("answer").toString().toUpperCase() != "WAITING FOR VA") {
                         waiting = false
                         LOG.info("Device to connect found: " + serverResponse.get("answer").toString())
                         control.showUserConfirmation(serverResponse.get("answer").toString())
@@ -193,7 +193,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                 val serverResponse = JSONObject(string)
                 if (serverResponse.has("answer")) {
-                    if (serverResponse.get("answer").toString() != "WAITING FOR VA") {
+                    if (serverResponse.get("answer").toString().toUpperCase() != "WAITING FOR VA") {
                         LOG.info("answer: " + serverResponse.get("answer").toString())
                         return false
                     } else {
@@ -270,7 +270,7 @@ class JSONLink(private val control: Control, private val port: Int) {
 
                         val serverResponse = JSONObject(string)
 
-                        if (serverResponse.get("answer").toString() != "NO COMMANDS") {
+                        if (serverResponse.get("answer").toString().toUpperCase() != "NO COMMANDS") {
                             LOG.info("Executing Task")
                             control.executeTask(serverResponse)
                         }
