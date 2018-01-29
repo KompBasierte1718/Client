@@ -124,8 +124,18 @@ class MainView : View("Hello Tornado") {
     /**
      * Opens a Command-View
      */
-    fun openCommandEdit() {
+    fun openCommandNew() {
+        newOrEditCommandView.clear()
         openInternalWindow(newOrEditCommandView)
+    }
+    fun openCommandEdit(commandToEdit:Command?){
+        if (commandToEdit!=null){
+            newOrEditCommandView.clear()
+            newOrEditCommandView.openEditObject(commandToEdit)
+            openInternalWindow(newOrEditCommandView)
+        }else{
+            showWarning("Bitte einen Befehl auswählen!")
+        }
     }
 
     /**
@@ -162,11 +172,13 @@ class MainView : View("Hello Tornado") {
         controller.onClose()
     }
 
-    fun openApplicationEdit() {
+    fun openApplicationNew() {
+        newOrEditApplicationView.clear()
         openInternalWindow(newOrEditApplicationView)
     }
     fun openApplicationEdit(applicationToEdit: Application?) {
         if (applicationToEdit != null) {
+            newOrEditApplicationView.clear()
             newOrEditApplicationView.openEditObject(applicationToEdit)
             openInternalWindow(newOrEditApplicationView)
         }else{

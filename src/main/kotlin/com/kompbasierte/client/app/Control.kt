@@ -464,6 +464,7 @@ class Control constructor(private val mainView: MainView) {
         var id = 0
         var sql = "SELECT COUNT(*), ID FROM Befehl WHERE Name = '${commandToSave.name}';"
         val stmt = db.createStatement()
+
         try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst) {
@@ -512,12 +513,14 @@ class Control constructor(private val mainView: MainView) {
         //vereinfacht das Updateverhalten aus der View heraus
         //ID!=0 bedeutet die App existiert schon
         if (application.id != 0) {
+            LOG.info("ApplicationSave ist ein Update!")
             val oldApplication = getApplication(application.id)
             if (oldApplication != null) {
                 updateApplication(oldApplication, application)
             } else {
                 mainView.showWarning("Fehler beim Update")
             }
+            return
         }
         var sql = "SELECT COUNT(*), ID FROM Programm WHERE Name = '${application.name}';"
         val stmt = db.createStatement()

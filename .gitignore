@@ -60,3 +60,4 @@ gradle-app.setting
 \# gradle/wrapper/gradle-wrapper.properties
 
 client.db
+client.db-journal
