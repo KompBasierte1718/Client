@@ -48,13 +48,13 @@ class MainView : View("Hello Tornado") {
                 item("Speichern") { isDisable = true }
                 item("Test Taskexec").onAction = EventHandler<ActionEvent> {
                     val json = JSONObject()
-                    json.put("program", "Google Chrome")
+                    json.put("program", "Chrome")
                     json.put("task", "starte")
                     controller.executeTask(json)
                 }
                 item("Test Robot").onAction = EventHandler<ActionEvent> {
                     val json = JSONObject()
-                    json.put("program", "Google Chrome")
+                    json.put("program", "Chrome")
                     json.put("task", "NeuerTab")
                     controller.executeTask(json)
                 }
