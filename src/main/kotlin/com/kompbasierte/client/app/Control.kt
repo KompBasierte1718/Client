@@ -159,7 +159,7 @@ class Control constructor(private val mainView: MainView) {
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (2, 'Spotify', 'C:\\Users\\admin\\AppData\\Roaming\\Spotify', 0, 0);")//d
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'Paint', 'C:\\WINDOWS\\system32\\mspaint.exe', 'C:\\WINDOWS\\SysWOW64\\mspaint.exe', 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'PDF Architekt 5', 0, 'C:\\Program Files\\PDF Architect 5\\architect.exe', 1);")
-        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'GoogleChrome', '/opt/google/chrome/google-chrome', 0, 1);")
+        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'chrome', '/opt/google/chrome/google-chrome', 0, 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Mozilla Firefox', 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe', 0, 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Microsoft Edge', 'C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe', 'hodor', 0);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'Rechner', 'C:\\Windows\\System32\\calc.exe', 'C:\\Windows\\SysWOW64\\calc.exe', 0);")
@@ -825,10 +825,15 @@ class Control constructor(private val mainView: MainView) {
     }
 
     fun executeTask(json: JSONObject) {
-        val instruction: String = json.get("program").toString()
-        instruction.split(" ")
+        /* val instruction: String = json.get("program").toString()
+        instruction.split("\\p{Blank}")
+        for(i in instruction) {
+            LOG.info(i.toString())
+        }
         val progName: String = instruction[1].toString()
-        val commandName: String = instruction[0].toString()
+        val commandName: String = instruction[0].toString() */
+        val progName: String = json.get("program").toString()
+        val commandName: String = json.get("task").toString()
         val app = getApplication(progName)
         val pfad: String
         val commandList: ArrayList<Command>

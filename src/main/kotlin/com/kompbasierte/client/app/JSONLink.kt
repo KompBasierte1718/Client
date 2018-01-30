@@ -171,9 +171,9 @@ class JSONLink(private val control: Control, private val port: Int) {
      * Retrieves the clients mac address and returns it as a hashed value
      */
     private fun getHashedMac(): String {
-        val ip = InetAddress.getLocalHost();
+        val ip = InetAddress.getLocalHost()
         val network = NetworkInterface.getByInetAddress(ip)
-        val mac = network.getHardwareAddress()
+        val mac = network.hardwareAddress
         val sb = StringBuilder()
         for (i in 0 until mac.size) {
             sb.append(String.format("%02X%s", mac[i], if (i < mac.size - 1) "-" else ""))
