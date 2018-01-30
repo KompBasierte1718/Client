@@ -357,6 +357,37 @@ class Control constructor(private val mainView: MainView) {
     }
 
     /**
+     * Gets all Commands from the Database
+     *
+     * @return ArrayList of Commands
+     * @see Command
+     */
+    fun getCommands(): ArrayList<Command> {
+        val commandList = ArrayList<Command>()
+        val stmt = db.createStatement()
+        val sql = "SELECT * FROM Befehl;"
+        try {
+            val result = stmt!!.executeQuery(sql)
+
+            while (result.isBeforeFirst)
+                result.next()
+            while (!result.isAfterLast) {
+                val active: Boolean = result.getInt("Aktiv") == 1
+                commandList.add(Command(result.getInt("ID"), result.getString("Name"),
+                        result.getString("VACallout"), result.getString("shortcut"), active))
+                result.next()
+            }
+            result.close()
+            return commandList
+        } catch (e: SQLException) {
+            mainView.showWarning(e.toString())
+            return commandList
+        } finally {
+            stmt.close()
+        }
+    }
+
+    /**
      * Gets all known Commands for a specific application from the Database
      *
      * @param application The application to get the Commands for

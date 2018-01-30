@@ -92,6 +92,13 @@ class MainView : View("Hello Tornado") {
     /**
      *
      */
+    fun getCommands() : ArrayList<Command> {
+        return controller.getCommands()
+    }
+
+    /**
+     *
+     */
     fun getCommandsForApplication(application: Application): ArrayList<Command> {
         return controller.getCommandsForApplications(application)
     }
