@@ -828,13 +828,14 @@ class Control constructor(private val mainView: MainView) {
         val progName: String = json.get("program").toString()
         val commandName: String = json.get("task").toString()
         val app = getApplications()
-        var pfad: String
+        val pfad: String
         var currentProg: String
-        var commandList: ArrayList<Command>
+        val commandList: ArrayList<Command>
 
-        if(app != null) {
+        if(!app.isEmpty()) {
             for(i in app) {
                 currentProg = i.name.toUpperCase()
+                LOG.info("Prüfe: "+currentProg+" == "+progName.toUpperCase())
                 if(currentProg == progName.toUpperCase()) {
                     commandList = getCommandsForApplications(i)
                     if (i.path32 != "") {
@@ -852,8 +853,10 @@ class Control constructor(private val mainView: MainView) {
                             }
                         }
                     }
+                    return
                 }
             }
+            showWarning("Unbekannte Anwendung: "+progName)
         } else {
             showWarning("Es gibt keine Anwendungen.")
         }
