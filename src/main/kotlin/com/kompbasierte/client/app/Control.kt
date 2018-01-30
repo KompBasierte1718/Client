@@ -825,40 +825,37 @@ class Control constructor(private val mainView: MainView) {
     }
 
     fun executeTask(json: JSONObject) {
-        /* val instruction: String = json.get("program").toString()
-        instruction.split("\\p{Blank}")
-        for(i in instruction) {
-            LOG.info(i.toString())
-        }
-        val progName: String = instruction[1].toString()
-        val commandName: String = instruction[0].toString() */
         val progName: String = json.get("program").toString()
         val commandName: String = json.get("task").toString()
-        val app = getApplication(progName)
-        val pfad: String
-        val commandList: ArrayList<Command>
+        val app = getApplications()
+        var pfad: String
+        var currentProg: String
+        var commandList: ArrayList<Command>
 
-        if (app != null) {
-        commandList = getCommandsForApplications(app)
-            if (app.path32 != "") {
-                pfad = app.path32
-            } else {
-                pfad = app.path64
-            }
-        } else {
-            return
-        }
-
-        if(commandName == "starten" || commandName == "starte"
-                || commandName == "Starten" || commandName == "Starte"
-                    && app.active) {
-            taskExec.executeTask(pfad)
-        } else {
-            for (i in commandList) {
-                if (i.name == commandName && i.active) {
-                    taskExec.executeCommand(i.shortcut)
+        if(app != null) {
+            for(i in app) {
+                currentProg = i.name.toUpperCase()
+                if(currentProg == progName.toUpperCase()) {
+                    commandList = getCommandsForApplications(i)
+                    if (i.path32 != "") {
+                        pfad = i.path32
+                    } else {
+                        pfad = i.path64
+                    }
+                    if(commandName.toUpperCase() == "STARTEN" || commandName.toUpperCase() == "STARTE"
+                            && i.active) {
+                        taskExec.executeTask(pfad)
+                    } else {
+                        for (j in commandList) {
+                            if (j.name.toUpperCase() == commandName.toUpperCase() && j.active) {
+                                taskExec.executeCommand(j.shortcut)
+                            }
+                        }
+                    }
                 }
             }
+        } else {
+            showWarning("Es gibt keine Anwendungen.")
         }
     }
 
