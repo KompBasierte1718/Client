@@ -9,7 +9,8 @@ class KeyDialog(private val master: MainView) : Fragment("Gerät registrieren") 
 
     override val root =
             vbox {
-                label("Bitte geben Sie einen persönlichen Schlüssel ein. Der Schlüssel muss aus zwei Wörtern, getrennt durch ein Leerzeichen bestehen. Merken Sie sich diesen gut!")
+                label("Bitte geben Sie einen persönlichen Schlüssel ein. Der Schlüssel muss aus zwei Wörtern, " +
+                        "getrennt durch ein Leerzeichen bestehen. Merken Sie sich diesen gut!")
                 form {
                     fieldset {
                         field("Schlüssel") {

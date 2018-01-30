@@ -1,24 +1,18 @@
 package com.kompbasierte.client.app
 
+import com.kompbasierte.client.app.Constants.Companion.LOG
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Category
 import com.kompbasierte.client.model.Command
-import com.kompbasierte.client.app.TaskExecutioner
 import com.kompbasierte.client.view.MainView
 import org.json.JSONObject
-import tornadofx.*
-import java.awt.Robot
-import java.sql.*
-import java.sql.SQLException
+import java.sql.Connection
 import java.sql.DriverManager
-import java.util.logging.Logger
-import kotlin.collections.ArrayList
+import java.sql.SQLException
 
 class Control constructor(private val mainView: MainView) {
 
-    companion object {
-        private val LOG = Logger.getLogger(Control::class.java.name)
-    }
+
 
     private val jsonLink : JSONLink
     private val taskExec : TaskExecutioner
@@ -27,7 +21,7 @@ class Control constructor(private val mainView: MainView) {
 
     init {
         LOG.info("Control erstellt")
-        jsonLink = JSONLink(this,41337)
+        jsonLink = JSONLink(this, Constants.COMMANDPORT)
         LOG.info("JSONLink erstellt")
         taskExec = TaskExecutioner(this)
         LOG.info("TaskExec erstellt")
@@ -49,7 +43,7 @@ class Control constructor(private val mainView: MainView) {
     }
 
     private fun openDatabase(): Connection {
-        val url = "jdbc:sqlite:client.db"
+        val url = Constants.DATABSEURL
 
         return try {
             LOG.info("Connecting to DB")
@@ -70,7 +64,7 @@ class Control constructor(private val mainView: MainView) {
         LOG.info("Schlüssel ist: " + arg)
         json.put("device", "pcclient")
         json.put("password", arg)
-        jsonLink.registerDevice(json, 51337)
+        jsonLink.registerDevice(json, Constants.REGISTERPORT)
         LOG.info("Registrieren")
     }
 
@@ -226,7 +220,8 @@ class Control constructor(private val mainView: MainView) {
             while (!result.isAfterLast) {
                 val active: Boolean = result.getInt("Aktiv") == 1
                 appList.add(Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
-                        result.getString("Name"), result.getString("Pfad_32"), result.getString("Pfad_64"), active))
+                        result.getString("Name"), result.getString("Pfad_32"), 
+                        result.getString("Pfad_64"), active))
                 result.next()
             }
             result.close()
@@ -239,29 +234,29 @@ class Control constructor(private val mainView: MainView) {
     }
 
     /**
-     * Gets all known Commands for a specific application from the Database
+     * Gets number of all known Applications for a specific command from the Database
      *
-     * @param application The application to get the Commands for
-     * @return ArrayList of known Commands
+     * @return number of applications that use this command
      * @see Command
      * @see Application
      */
-    fun getApplicationCountforCommand(command: Command): Int {
+    private fun getApplicationCountforCommand(command: Command): Int {
         var count = 0
         val stmt = db.createStatement()
-        val sql = "SELECT COUNT(*) FROM Programm JOIN Programm_Befehl ON Programm_Befehl.Programm_ID  = Programm.ID JOIN Befehl" +
+        val sql = "SELECT COUNT(*) FROM Programm JOIN Programm_Befehl ON Programm_Befehl.Programm_ID  = " +
+                "Programm.ID JOIN Befehl" +
                 " ON Programm_Befehl.Befehl_ID = Befehl.ID WHERE Befehl.ID = ${command.id};"
-        try {
+        return try {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst) {
                 result.next()
             }
             count = result.getInt("COUNT(*)")
             result.close()
-            return count
+            count
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
-            return -1
+            -1
         } finally {
             stmt.close()
         }
@@ -274,7 +269,7 @@ class Control constructor(private val mainView: MainView) {
      * @return one Application
      * @see Application
      */
-    fun getApplication(id: Int): Application? {
+    private fun getApplication(id: Int): Application? {
         val app: Application
         if (id < 1) {
             return null
@@ -285,9 +280,11 @@ class Control constructor(private val mainView: MainView) {
             val result = stmt!!.executeQuery(sql)
             while (result.isBeforeFirst)
                 result.next()
+            //TODO always true?
             val active: Boolean = result.getInt("Aktiv") == 1
             app = Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
-                    result.getString("Name"), result.getString("Pfad_32"), result.getString("Pfad_64"), active)
+                    result.getString("Name"), result.getString("Pfad_32"), 
+                    result.getString("Pfad_64"), active)
             result.close()
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
@@ -318,7 +315,8 @@ class Control constructor(private val mainView: MainView) {
                 result.next()
             val active: Boolean = result.getInt("Aktiv") == 1
             app = Application(result.getInt("ID"), result.getInt("Kategorie_ID"),
-                    result.getString("Name"), result.getString("Pfad_32"), result.getString("Pfad_64"), active)
+                    result.getString("Name"), result.getString("Pfad_32"), 
+                    result.getString("Pfad_64"), active)
             result.close()
         } catch (e: SQLException) {
             mainView.showWarning(e.toString())
@@ -428,7 +426,7 @@ class Control constructor(private val mainView: MainView) {
      * @return one Command
      * @see Command
      */
-    fun getCommand(id: Int): Command? {
+    private fun getCommand(id: Int): Command? {
         val command: Command
         if (id < 1) {
             return null
@@ -503,7 +501,7 @@ class Control constructor(private val mainView: MainView) {
             val active = boolToInt(commandToSave.active)
             var sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
                     "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
-            println(sql)
+            LOG.info(sql)
             val changes = executeUpdate(sql)
             sql = "SELECT ID FROM Befehl WHERE Name = '${commandToSave.name}';"
             try {
@@ -520,7 +518,7 @@ class Control constructor(private val mainView: MainView) {
             }
             if(changes != 0) {
                 sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (${application.id}, $id);"
-                println(sql)
+                LOG.info(sql)
                 executeUpdate(sql)
             } else {
                 mainView.showWarning("Es gibt ein Befehl mit dem Namen schon.")
@@ -566,7 +564,7 @@ class Control constructor(private val mainView: MainView) {
             val active = boolToInt(application.active)
             sql = "INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) " +
                     "VALUES ('${application.categoryID}', '${application.name}', '${application.path32}', '${application.path64}', '$active');"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
             sql = "SELECT ID FROM Programm WHERE Name = '${application.name}';"
             try {
@@ -590,7 +588,7 @@ class Control constructor(private val mainView: MainView) {
                     result.next()
                 while (!result.isAfterLast) {
                     sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES ('$id', '${result.getInt("ID")}')"
-                    println(sql)
+                    LOG.info(sql)
                     executeUpdate(sql)
                     result.next()
                 }
@@ -611,7 +609,7 @@ class Control constructor(private val mainView: MainView) {
      * @see Command
      */
     private fun updateCommand(oldCommand: Command, newCommand: Command, application: Application) {
-        var countApplications = getApplicationCountforCommand(oldCommand)
+        val countApplications = getApplicationCountforCommand(oldCommand)
         if(countApplications == -1) {
             return
         }
@@ -622,23 +620,23 @@ class Control constructor(private val mainView: MainView) {
             var sql: String
             if (oldCommand.name != newCommand.name) {
                 sql = "UPDATE Befehl SET Name = '${newCommand.name}' WHERE ID = ${newCommand.id};"
-                println(sql)
+                LOG.info(sql)
                 executeUpdate(sql)
             }
             if (oldCommand.vACallout != newCommand.vACallout) {
                 sql = "UPDATE Befehl SET VACallout = '${newCommand.vACallout}' WHERE ID = ${newCommand.id};"
-                println(sql)
+                LOG.info(sql)
                 executeUpdate(sql)
             }
             if (oldCommand.shortcut != newCommand.shortcut) {
                 sql = "UPDATE Befehl SET shortcut = '${newCommand.shortcut}' WHERE ID = ${newCommand.id};"
-                println(sql)
+                LOG.info(sql)
                 executeUpdate(sql)
             }
             if (oldCommand.active != newCommand.active) {
                 val active = boolToInt(newCommand.active)
                 sql = "UPDATE Befehl SET Aktiv = $active WHERE ID = ${newCommand.id};"
-                println(sql)
+                LOG.info(sql)
                 executeUpdate(sql)
             }
             return
@@ -659,7 +657,7 @@ class Control constructor(private val mainView: MainView) {
      * @param newApplication The new Application to update
      * @see Application
      */
-    fun updateApplication(oldApplication: Application, newApplication: Application) {
+    private fun updateApplication(oldApplication: Application, newApplication: Application) {
         if (oldApplication.id == 0 || newApplication.id == 0 || oldApplication.id != newApplication.id) {
             return
         }
@@ -667,15 +665,17 @@ class Control constructor(private val mainView: MainView) {
         if (oldApplication.categoryID != newApplication.categoryID) {
             val stmt = db.createStatement()
             sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
-                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${oldApplication.categoryID};"
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID " +
+                    "= ${oldApplication.categoryID};"
             try {
                 val result = stmt!!.executeQuery(sql)
 
                 while (result.isBeforeFirst)
                     result.next()
                 while (!result.isAfterLast) {
-                    sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${newApplication.id} AND Befehl_ID = ${result.getInt("ID")};"
-                    println(sql)
+                    sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${newApplication.id} AND Befehl_ID" +
+                            " = ${result.getInt("ID")};"
+                    LOG.info(sql)
                     executeUpdate(sql)
                     result.next()
                 }
@@ -686,10 +686,11 @@ class Control constructor(private val mainView: MainView) {
                 stmt.close()
             }
             sql = "UPDATE Programm SET Kategorie_ID = '${newApplication.categoryID}' WHERE ID = ${newApplication.id};"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
             sql = "SELECT * FROM Befehl JOIN Kategorie_Befehl ON Kategorie_Befehl.Befehl_ID = Befehl.ID " +
-                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID = ${newApplication.categoryID};"
+                    "JOIN Kategorie ON Kategorie_Befehl.Kategorie_ID = Kategorie.ID WHERE Kategorie.ID " +
+                    "= ${newApplication.categoryID};"
             try {
                 val result = stmt!!.executeQuery(sql)
 
@@ -697,7 +698,7 @@ class Control constructor(private val mainView: MainView) {
                     result.next()
                 while (!result.isAfterLast) {
                     sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES ('${newApplication.id}', '${result.getInt("ID")}')"
-                    println(sql)
+                    LOG.info(sql)
                     executeUpdate(sql)
                     result.next()
                 }
@@ -710,23 +711,23 @@ class Control constructor(private val mainView: MainView) {
         }
         if (oldApplication.name != newApplication.name) {
             sql = "UPDATE Programm SET Name = '${newApplication.name}' WHERE ID = ${newApplication.id};"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
         }
         if (oldApplication.path32 != newApplication.path32) {
             sql = "UPDATE Programm SET Pfad_32 = '${newApplication.path32}' WHERE ID = ${newApplication.id};"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
         }
         if (oldApplication.path64 != newApplication.path64) {
             sql = "UPDATE Programm SET Pfad_64 = '${newApplication.path64}' WHERE ID = ${newApplication.id};"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
         }
         if (oldApplication.active != newApplication.active) {
             val active = boolToInt(newApplication.active)
             sql = "UPDATE Programm SET Aktiv = '$active' WHERE ID = ${newApplication.id};"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
         }
     }
@@ -741,7 +742,7 @@ class Control constructor(private val mainView: MainView) {
      */
     fun deleteCommandForApplication(commandToDelete: Command, application: Application) {
         var sql = "DELETE FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id} AND Programm_ID = ${application.id};"
-        println(sql)
+        LOG.info(sql)
         executeUpdate(sql)
         var n = 0
         sql = "SELECT COUNT(*) FROM Programm_Befehl WHERE Befehl_ID = ${commandToDelete.id};"
@@ -773,7 +774,7 @@ class Control constructor(private val mainView: MainView) {
         }
         if (n == 0) {
             sql = "DELETE FROM Befehl WHERE ID = '${commandToDelete.id}';"
-            println(sql)
+            LOG.info(sql)
             executeUpdate(sql)
         }
     }
@@ -787,10 +788,10 @@ class Control constructor(private val mainView: MainView) {
      */
     fun deleteApplication(application: Application) {
         var sql = "DELETE FROM Programm_Befehl WHERE Programm_ID = ${application.id};"
-        println(sql)
+        LOG.info(sql)
         executeUpdate(sql)
         sql = "DELETE FROM Programm WHERE ID = '${application.id}';"
-        println(sql)
+        LOG.info(sql)
         executeUpdate(sql)
     }
 
@@ -859,32 +860,35 @@ class Control constructor(private val mainView: MainView) {
         val progName: String = json.get("program").toString()
         val commandName: String = json.get("task").toString()
         val app = getApplications()
-        var pfad: String
+        val pfad: String
         var currentProg: String
-        var commandList: ArrayList<Command>
+        val commandList: ArrayList<Command>
 
-        if(app != null) {
+        if(!app.isEmpty()) {
             for(i in app) {
                 currentProg = i.name.toUpperCase()
+                LOG.info("Prüfe: "+currentProg+" == "+progName.toUpperCase())
                 if(currentProg == progName.toUpperCase()) {
                     commandList = getCommandsForApplications(i)
-                    if (i.path32 != "") {
-                        pfad = i.path32
+                    pfad = if (i.path32 != "") {
+                        i.path32
                     } else {
-                        pfad = i.path64
+                        i.path64
                     }
                     if(commandName.toUpperCase() == "STARTEN" || commandName.toUpperCase() == "STARTE"
                             && i.active) {
                         taskExec.executeTask(pfad)
                     } else {
-                        for (j in commandList) {
-                            if (j.name.toUpperCase() == commandName.toUpperCase() && j.active) {
-                                taskExec.executeCommand(j.shortcut)
-                            }
-                        }
+                        //TODO Korrektheit prüfen, von Code Inspect eingefügt
+                        commandList
+                                .asSequence()
+                                .filter { it.name.toUpperCase() == commandName.toUpperCase() && it.active }
+                                .forEach { taskExec.executeCommand(it.shortcut) }
                     }
+                    return
                 }
             }
+            showWarning("Unbekannte Anwendung: "+progName)
         } else {
             showWarning("Es gibt keine Anwendungen.")
         }

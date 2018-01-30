@@ -16,7 +16,8 @@ class KeyConfirmationDialog(private val master: MainView) : Fragment("Gerätereg
 
     override val root =
             vbox {
-                lblDevice = label("Es möchte sich ein Gerät vom Typ " + device + " mit Ihnen Verbinden. Verbindung zulassen?")
+                lblDevice = label("Es möchte sich ein Gerät vom Typ " + device +
+                        " mit Ihnen Verbinden. Verbindung zulassen?")
 
                 buttonbar {
                     button("Ja") {

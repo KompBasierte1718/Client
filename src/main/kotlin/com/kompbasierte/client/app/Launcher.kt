@@ -1,14 +1,14 @@
 package com.kompbasierte.client.app
 
-import javafx.application.Application
-import tornadofx.*
 import com.kompbasierte.client.view.MainView
+import javafx.application.Application
 import javafx.stage.Stage
+import tornadofx.*
 import java.util.logging.Logger
 
 class Launcher : App(MainView::class, Styles::class) {
 
-    lateinit var mainView:MainView
+    private lateinit var mainView:MainView
 
     companion object {
         private val LOG = Logger.getLogger(Control::class.java.name)
