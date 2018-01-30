@@ -136,7 +136,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                 action {
                     LOG.info("Saving with Shortcut: " + pressedKeyWithMod.toString())
                     master.saveCommandForApplication(Command(commandID, nameText.text, nameText.text,
-                            "" + pressedKeyWithMod.toString(), activeCheckbox.isSelected))
+                            "" + pressedKeyWithMod.toString(), activeCheckbox.isSelected),commandID!=0)
                     close()
                 }
             }
@@ -218,6 +218,7 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
         shiftDown = false
         pressedKeyWithMod = createKeyCombinationWithModifier()
         refreshPane()
+
 
         //Workaround für schließen mit aktiviertem Button
         listenerButton.text="Lausche"
