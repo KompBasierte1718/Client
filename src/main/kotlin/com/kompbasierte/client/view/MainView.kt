@@ -1,24 +1,17 @@
 ﻿package com.kompbasierte.client.view
 
-import com.kompbasierte.client.model.Application
-import com.kompbasierte.client.model.Command
+import com.kompbasierte.client.app.Constants.Companion.LOG
 import com.kompbasierte.client.app.Control
+import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Category
+import com.kompbasierte.client.model.Command
 import javafx.application.Platform
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import org.json.JSONObject
 import tornadofx.*
-import java.util.logging.Logger
-import java.awt.Robot
-import java.awt.event.KeyEvent
-import java.awt.event.InputEvent
 
 class MainView : View("Hello Tornado") {
-
-    companion object {
-        private val LOG = Logger.getLogger(MainView::class.java.name)
-    }
 
     init {
         LOG.info("MainView erstellt")
@@ -44,8 +37,7 @@ class MainView : View("Hello Tornado") {
         top = menubar {
 
             menu("Datei") {
-                item("Gerät registrieren").onAction = EventHandler<ActionEvent>{openKeyDialog()}
-                item("Speichern") { isDisable = true }
+                item("Gerät registrieren").onAction = EventHandler<ActionEvent> { openKeyDialog() }
                 item("Test Taskexec").onAction = EventHandler<ActionEvent> {
                     val json = JSONObject()
                     json.put("program", "Google Chrome")
@@ -65,10 +57,12 @@ class MainView : View("Hello Tornado") {
             }
 
             menu("Einstellungen") {
+                isDisable = true
                 item("Beispiel")
                 item("Beispiel 2")
             }
             menu("Hilfe") {
+                isDisable = true
                 item("Beispiel")
                 item("Beispiel 2")
             }
@@ -78,29 +72,22 @@ class MainView : View("Hello Tornado") {
         center = vbox { add(applicationsAndCommandsView) }
         LOG.info("Refresh Table after init")
         refreshTableView()
-
-//        Vorerst nicht mehr benötigt
-//        bottom = button("Trigger Warning")
-//        {
-//            action {
-//                showWarning("Hier könnte ihre Warnung stehen!", true)
-//            }
-//        }
-
     }
 
     /**
-     *
+     * Wrapper
+     * @see Control.getCommandsForApplications
      */
     fun getCommandsForApplication(application: Application): ArrayList<Command> {
         return controller.getCommandsForApplications(application)
     }
 
     /**
-     *
+     * Wrapper
+     * @see Control.saveCommandForApplication
      */
     fun saveCommandForApplication(commandToSave: Command, updateCommand: Boolean) {
-        controller.saveCommandForApplication(commandToSave ,
+        controller.saveCommandForApplication(commandToSave,
                 applicationsAndCommandsView.getSelectedApplication(), updateCommand)
         LOG.info("Refresh Table after saveCommand")
         refreshTableView()
@@ -116,25 +103,29 @@ class MainView : View("Hello Tornado") {
     }
 
     fun showWarning(text: String, close: Boolean) {
-        LOG.info("Show Warning: "+text+" // Close: "+close)
+        LOG.info("Show Warning: $text // Fatal: $close")
         genericWarningView.setWarningText(text)
         genericWarningView.setCloseBehaviour(close)
-        runAsync{}ui {genericWarningView.openModal()}
+        runAsync {} ui { genericWarningView.openModal() }
     }
 
     /**
-     * Opens a Command-View
+     * Opens a New-Command-View
      */
     fun openCommandNew() {
         newOrEditCommandView.clear()
         openInternalWindow(newOrEditCommandView)
     }
-    fun openCommandEdit(commandToEdit:Command?){
-        if (commandToEdit!=null){
+
+    /**
+     * Opens a Edit-Command-View
+     */
+    fun openCommandEdit(commandToEdit: Command?) {
+        if (commandToEdit != null) {
             newOrEditCommandView.clear()
             newOrEditCommandView.openEditObject(commandToEdit)
             openInternalWindow(newOrEditCommandView)
-        }else{
+        } else {
             showWarning("Bitte einen Befehl auswählen!")
         }
     }
@@ -177,17 +168,18 @@ class MainView : View("Hello Tornado") {
         newOrEditApplicationView.clear()
         openInternalWindow(newOrEditApplicationView)
     }
+
     fun openApplicationEdit(applicationToEdit: Application?) {
         if (applicationToEdit != null) {
             newOrEditApplicationView.clear()
             newOrEditApplicationView.openEditObject(applicationToEdit)
             openInternalWindow(newOrEditApplicationView)
-        }else{
+        } else {
             showWarning("Bitte eine Applikation auswählen")
         }
     }
 
-    fun saveApplication(application: Application){
+    fun saveApplication(application: Application) {
         controller.saveApplication(application)
         LOG.info("Refresh Table after saveApp")
         refreshTableView()
@@ -203,21 +195,21 @@ class MainView : View("Hello Tornado") {
         refreshTableView()
     }
 
-    fun openKeyDialog() {
+    private fun openKeyDialog() {
         keyDialog.keyText.clear()
         openInternalWindow(keyDialog)
     }
 
-    fun transmitKeys(arg :String){
+    fun transmitKeys(arg: String) {
         controller.registerToService(arg)
     }
 
-    fun openKeyConfirmationDialog(device :String){
+    fun openKeyConfirmationDialog(device: String) {
         keyConfirmationDialog.setDeviceType(device)
-        runAsync {  }ui { openInternalWindow(keyConfirmationDialog)}
+        runAsync { } ui { openInternalWindow(keyConfirmationDialog) }
     }
 
-    fun userRegisterConfirmation(status :Int){
+    fun userRegisterConfirmation(status: Int) {
         controller.userRegisterConfirmation(status)
     }
 }

@@ -1,5 +1,6 @@
 package com.kompbasierte.client.view
 
+import com.kompbasierte.client.app.Constants.Companion.LOG
 import com.kompbasierte.client.model.Application
 import com.kompbasierte.client.model.Command
 import javafx.geometry.Pos
@@ -8,13 +9,9 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableView
 import javafx.scene.control.Tooltip
 import tornadofx.*
-import java.util.logging.Logger
 
 
 class ApplicationsAndCommandsTableView(private val master: MainView) : View() {
-    companion object {
-        private val LOG = Logger.getLogger(ApplicationsAndCommandsTableView::class.java.name)
-    }
 
     private lateinit var listView: ListView<Application>
     private lateinit var table: TableView<Command>

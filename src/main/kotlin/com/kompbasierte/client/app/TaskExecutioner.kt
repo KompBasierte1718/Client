@@ -1,9 +1,10 @@
 package com.kompbasierte.client.app
 
-import java.io.IOException
 import java.awt.Robot
 import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.*
+import java.awt.event.KeyEvent.VK_ALT
+import java.awt.event.KeyEvent.VK_TAB
+import java.io.IOException
 import java.lang.reflect.Field
 
 class TaskExecutioner constructor(private val control: Control){
@@ -19,15 +20,15 @@ class TaskExecutioner constructor(private val control: Control){
     }
 
     fun executeCommand(command: String) {
-        val sc = command.split("+")
-        var string1: String
+        val sc = command.split(Constants.COMMAND_DELIMITER)
+        val string1: String
 
-        if (sc[0] == "Strg") {
-            string1 = "VK_CONTROL"
+        string1 = if (sc[0] == "Strg"||sc[0] == "Ctrl") {
+            Constants.CONTROL_KEY_STRING
         } else if (sc[0] == "Alt" || sc[0] == "Shift") {
-            string1 = "VK_" + sc[0].toUpperCase()
+            "VK_" + sc[0].toUpperCase()
         } else {
-            string1 = ""
+            ""
         }
 
         val string2: String = "VK_" + sc[1].toUpperCase()
@@ -37,20 +38,20 @@ class TaskExecutioner constructor(private val control: Control){
         val key2: Int = field2.getInt(null)
 
         switchFocus()
-        r.delay(500)
+        r.delay(Constants.DELAY_BEFORE_OR_AFTER_COMMANDS)
         r.keyPress(key1)
         r.keyPress(key2)
-        r.delay(10)
+        r.delay(Constants.DELAY_COMMAND_PRESSED)
         r.keyRelease(key1)
         r.keyRelease(key2)
-        r.delay(500)
+        r.delay(Constants.DELAY_BEFORE_OR_AFTER_COMMANDS)
         switchFocus()
     }
 
     private fun switchFocus() {
         r.keyPress( VK_ALT )
         r.keyPress( VK_TAB )
-        r.delay(10)
+        r.delay(Constants.DELAY_COMMAND_PRESSED)
         r.keyRelease( VK_ALT )
         r.keyRelease( VK_TAB )
     }
