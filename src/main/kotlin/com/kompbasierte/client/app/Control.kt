@@ -9,6 +9,7 @@ import org.json.JSONObject
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
+import java.time.LocalDateTime
 
 class Control constructor(private val mainView: MainView) {
 
@@ -155,7 +156,7 @@ class Control constructor(private val mainView: MainView) {
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'PDF Architekt 5', 0, 'C:\\Program Files\\PDF Architect 5\\architect.exe', 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'chrome', '/opt/google/chrome/google-chrome', 0, 1);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Mozilla Firefox', 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe', 0, 1);")
-        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Microsoft Edge', 'C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe', 'hodor', 0);")
+        sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (3, 'Microsoft Edge', 'C:\\Windows\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\\MicrosoftEdge.exe', 'hodor', 0);")
         sqlList.add("INSERT INTO Programm (Kategorie_ID, Name, Pfad_32, Pfad_64, Aktiv) VALUES (1, 'Rechner', 'C:\\Windows\\System32\\calc.exe', 'C:\\Windows\\SysWOW64\\calc.exe', 0);")
         sqlList.add("INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) VALUES ('NeuerTab', 'Neuer Tab öffnen', 'Strg+T', 1);")
         sqlList.add("INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) VALUES ('Verlauf', 'Verlauf öffnen', 'Strg+H', 0);")
@@ -497,12 +498,28 @@ class Control constructor(private val mainView: MainView) {
             }
         } else {
             val stmt = db.createStatement()
+            var sql = "SELECT COUNT(*) FROM Befehl WHERE Name = '${commandToSave.name}';"
+            var nameExists = 0
+            try {
+                val result = stmt!!.executeQuery(sql)
+                while (result.isBeforeFirst) {
+                    result.next()
+                }
+                nameExists = result.getInt("COUNT(*)")
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
             var id = 0
-            val active = boolToInt(commandToSave.active)
-            var sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
-                    "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
-            LOG.info(sql)
-            val changes = executeUpdate(sql)
+            if (nameExists == 0) {
+                val active = boolToInt(commandToSave.active)
+                sql = "INSERT INTO Befehl (Name, VACallout, shortcut, Aktiv) " +
+                        "VALUES ('${commandToSave.name}', '${commandToSave.vACallout}', '${commandToSave.shortcut}', '$active');"
+                LOG.info(sql)
+                executeUpdate(sql)
+            }
             sql = "SELECT ID FROM Befehl WHERE Name = '${commandToSave.name}';"
             try {
                 val result = stmt!!.executeQuery(sql)
@@ -516,12 +533,26 @@ class Control constructor(private val mainView: MainView) {
             } finally {
                 stmt.close()
             }
-            if(changes != 0) {
+            sql = "SELECT COUNT(*) FROM Programm_Befehl WHERE Programm_ID = ${application.id} AND Befehl_ID = $id;"
+            var isLinked = 0
+            try {
+                val result = stmt!!.executeQuery(sql)
+                while (result.isBeforeFirst) {
+                    result.next()
+                }
+                isLinked = result.getInt("COUNT(*)")
+                result.close()
+            } catch (e: SQLException) {
+                mainView.showWarning(e.toString())
+            } finally {
+                stmt.close()
+            }
+            if(isLinked == 0) {
                 sql = "INSERT INTO Programm_Befehl (Programm_ID, Befehl_ID) VALUES (${application.id}, $id);"
                 LOG.info(sql)
                 executeUpdate(sql)
             } else {
-                mainView.showWarning("Es gibt ein Befehl mit dem Namen schon.")
+                mainView.showWarning("Der Befehl ${commandToSave.name} ist schon dem Programm ${application.name} zugeortnet.")
             }
         }
     }
@@ -643,10 +674,11 @@ class Control constructor(private val mainView: MainView) {
         }
         if (countApplications > 1) {
             if(oldCommand.name == newCommand.name) {
-                newCommand.name = newCommand.name + '_' + application.name
+                newCommand.name = newCommand.name + '_' + application.name + '_' + LocalDateTime.now()
             }
             deleteCommandForApplication(oldCommand,application)
             saveCommandForApplication(newCommand, application, false)
+            mainView.showWarning("Achtung der Commandname hat sich geändert!!!")
         }
     }
 
@@ -870,7 +902,7 @@ class Control constructor(private val mainView: MainView) {
                 LOG.info("Prüfe: "+currentProg+" == "+progName.toUpperCase())
                 if(currentProg == progName.toUpperCase()) {
                     commandList = getCommandsForApplications(i)
-                    pfad = if (i.path32 != "") {
+                    pfad = if (i.path32 != "0") {
                         i.path32
                     } else {
                         i.path64
