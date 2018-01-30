@@ -1,21 +1,17 @@
 package com.kompbasierte.client.view
 
+import com.kompbasierte.client.app.Constants.Companion.LOG
 import com.kompbasierte.client.model.Command
 import javafx.event.EventHandler
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
-import javafx.scene.input.KeyCombination.*
+import javafx.scene.input.KeyCombination.ModifierValue
 import javafx.scene.input.KeyEvent
 import tornadofx.*
-import java.util.logging.Logger
 
 class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Command") {
-
-    companion object {
-        private val LOG = Logger.getLogger(ApplicationsAndCommandsTableView::class.java.name)
-    }
 
     private var commandID = 0
     private lateinit var nameText: TextField
@@ -95,16 +91,6 @@ class NewOrEditCommandView(private val master: MainView) : Fragment("New/Edit Co
                                                 refreshPane()
                                             }
                                         }))
-                                        /* TODO Unused right now, for later usage
-                                        onKeyReleasedProperty().set(EventHandler<KeyEvent>(fun(e: KeyEvent?) {
-                                            if (e != null) {
-                                                strgDown = e.isShortcutDown
-                                                altDown = e.isAltDown
-                                                shiftDown = e.isShiftDown
-                                                keyName = e.code
-                                                refreshPane()
-                                            }
-                                        }))*/
                                     } else {
                                         text = "Lauschen"
                                         onKeyPressedProperty().set(null)

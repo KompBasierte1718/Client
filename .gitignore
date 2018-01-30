@@ -61,3 +61,7 @@ gradle-app.setting
 
 client.db
 client.db-journal
+.idea/modules/Client.iml
+.idea/modules/Client_main.iml
+.idea/modules/Client_test.iml
+.idea/modules.xml
