@@ -14,6 +14,8 @@ class TaskExecutioner constructor(private val control: Control){
     fun executeTask(pfad: String) {
         try {
             Runtime.getRuntime().exec(pfad)
+            r.delay(Constants.DELAY_BEFORE_OR_AFTER_COMMANDS * 3)
+            switchFocus()
         } catch (e: IOException) {
             control.showWarning("Bitte gültigen Pfad angeben.")
         }

@@ -176,7 +176,7 @@ class JSONLink(private val control: Control, private val port: Int) {
      * Retrieves the clients mac address and returns it as a hashed value
      */
     private fun getHashedMac(): String {
-        val ip = InetAddress.getLocalHost()
+        /*val ip = InetAddress.getLocalHost()
         val network = NetworkInterface.getByInetAddress(ip)
         val mac = network.hardwareAddress
         val sb = StringBuilder()
@@ -194,7 +194,8 @@ class JSONLink(private val control: Control, private val port: Int) {
             result.append(Constants.HEX_CHARS[i shr 4 and 0x0f])
             result.append(Constants.HEX_CHARS[i and 0x0f])
         }
-        return result.toString()
+        return result.toString()*/
+        return "LINUXCLIENT"
     }
 
     private fun sendPassword(json: JSONObject, port: Int): Boolean {
